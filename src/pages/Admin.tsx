@@ -1,92 +1,177 @@
 import { Navigation } from "@/components/layout/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Shield, Users, Calendar, FileText, Settings } from "lucide-react";
+import { Shield, Users, Calendar, FileText, Settings, Home } from "lucide-react";
+import { AdminGuard } from "@/components/admin/AdminGuard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
 const Admin = () => {
+  const [stats, setStats] = useState({
+    members: 0,
+    requests: 0,
+    events: 0,
+    properties: 0,
+  });
+  const [requests, setRequests] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchStats();
+    fetchRequests();
+    fetchEvents();
+  }, []);
+
+  const fetchStats = async () => {
+    const [membersRes, requestsRes, eventsRes, propertiesRes] = await Promise.all([
+      supabase.from("profiles").select("id", { count: "exact", head: true }),
+      supabase.from("concierge_requests").select("id", { count: "exact", head: true }),
+      supabase.from("events").select("id", { count: "exact", head: true }),
+      supabase.from("properties").select("id", { count: "exact", head: true }),
+    ]);
+
+    setStats({
+      members: membersRes.count || 0,
+      requests: requestsRes.count || 0,
+      events: eventsRes.count || 0,
+      properties: propertiesRes.count || 0,
+    });
+  };
+
+  const fetchRequests = async () => {
+    const { data } = await supabase
+      .from("concierge_requests")
+      .select("*, profiles(first_name, last_name)")
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (data) setRequests(data);
+  };
+
+  const fetchEvents = async () => {
+    const { data } = await supabase
+      .from("events")
+      .select("*")
+      .order("event_date", { ascending: true })
+      .limit(10);
+
+    if (data) setEvents(data);
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      <main className="pt-20">
-        <section className="py-20 bg-gradient-to-b from-background to-muted/30">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h1 className="font-serif text-5xl font-bold mb-4">
-                <span className="gradient-text-gold">Admin</span> Dashboard
-              </h1>
-              <p className="text-xl text-foreground/70">
-                Manage members, requests, and content
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-              <Card className="p-6 hover:shadow-gold transition-elegant">
-                <Users className="w-10 h-10 text-primary mb-4" />
-                <h3 className="font-semibold text-lg mb-2">Members</h3>
-                <p className="text-sm text-foreground/60 mb-4">Manage member accounts and tiers</p>
-                <Button variant="premium" size="sm" className="w-full">
-                  View Members
-                </Button>
-              </Card>
-
-              <Card className="p-6 hover:shadow-gold transition-elegant">
-                <FileText className="w-10 h-10 text-primary mb-4" />
-                <h3 className="font-semibold text-lg mb-2">Concierge Requests</h3>
-                <p className="text-sm text-foreground/60 mb-4">Review and assign requests</p>
-                <Button variant="premium" size="sm" className="w-full">
-                  View Requests
-                </Button>
-              </Card>
-
-              <Card className="p-6 hover:shadow-gold transition-elegant">
-                <Calendar className="w-10 h-10 text-primary mb-4" />
-                <h3 className="font-semibold text-lg mb-2">Events</h3>
-                <p className="text-sm text-foreground/60 mb-4">Create and manage events</p>
-                <Button variant="premium" size="sm" className="w-full">
-                  Manage Events
-                </Button>
-              </Card>
-
-              <Card className="p-6 hover:shadow-gold transition-elegant">
-                <Shield className="w-10 h-10 text-primary mb-4" />
-                <h3 className="font-semibold text-lg mb-2">Properties</h3>
-                <p className="text-sm text-foreground/60 mb-4">IDX sync and listings</p>
-                <Button variant="premium" size="sm" className="w-full">
-                  View Properties
-                </Button>
-              </Card>
-
-              <Card className="p-6 hover:shadow-gold transition-elegant">
-                <FileText className="w-10 h-10 text-primary mb-4" />
-                <h3 className="font-semibold text-lg mb-2">Lookbooks</h3>
-                <p className="text-sm text-foreground/60 mb-4">Style curation management</p>
-                <Button variant="premium" size="sm" className="w-full">
-                  Create Lookbook
-                </Button>
-              </Card>
-
-              <Card className="p-6 hover:shadow-gold transition-elegant">
-                <Settings className="w-10 h-10 text-primary mb-4" />
-                <h3 className="font-semibold text-lg mb-2">Settings</h3>
-                <p className="text-sm text-foreground/60 mb-4">System configuration</p>
-                <Button variant="premium" size="sm" className="w-full">
-                  Configure
-                </Button>
-              </Card>
-            </div>
-
-            <div className="text-center mt-12">
-              <Card className="inline-block p-6 bg-muted/50">
-                <p className="text-sm text-foreground/70">
-                  <Shield className="w-4 h-4 inline mr-2" />
-                  Admin authentication and full functionality coming with Lovable Cloud
+    <AdminGuard>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="pt-20">
+          <section className="py-20 bg-gradient-to-b from-background to-muted/30">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-12">
+                <h1 className="font-serif text-5xl font-bold mb-4">
+                  <span className="gradient-text-gold">Admin</span> Dashboard
+                </h1>
+                <p className="text-xl text-foreground/70">
+                  Manage members, requests, and content
                 </p>
-              </Card>
+              </div>
+
+              {/* Stats Overview */}
+              <div className="grid md:grid-cols-4 gap-6 max-w-6xl mx-auto mb-12">
+                <Card className="p-6 text-center">
+                  <Users className="w-8 h-8 text-primary mx-auto mb-2" />
+                  <div className="text-3xl font-bold mb-1">{stats.members}</div>
+                  <p className="text-sm text-foreground/60">Total Members</p>
+                </Card>
+                <Card className="p-6 text-center">
+                  <FileText className="w-8 h-8 text-primary mx-auto mb-2" />
+                  <div className="text-3xl font-bold mb-1">{stats.requests}</div>
+                  <p className="text-sm text-foreground/60">Concierge Requests</p>
+                </Card>
+                <Card className="p-6 text-center">
+                  <Calendar className="w-8 h-8 text-primary mx-auto mb-2" />
+                  <div className="text-3xl font-bold mb-1">{stats.events}</div>
+                  <p className="text-sm text-foreground/60">Events</p>
+                </Card>
+                <Card className="p-6 text-center">
+                  <Home className="w-8 h-8 text-primary mx-auto mb-2" />
+                  <div className="text-3xl font-bold mb-1">{stats.properties}</div>
+                  <p className="text-sm text-foreground/60">Properties</p>
+                </Card>
+              </div>
+
+              {/* Management Tabs */}
+              <Tabs defaultValue="requests" className="max-w-6xl mx-auto">
+                <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-2 mb-8">
+                  <TabsTrigger value="requests">Concierge Requests</TabsTrigger>
+                  <TabsTrigger value="events">Events</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="requests">
+                  <Card className="p-6">
+                    <h2 className="font-serif text-2xl font-bold mb-6">Recent Requests</h2>
+                    <div className="space-y-4">
+                      {requests.map((request) => (
+                        <Card key={request.id} className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <Badge>{request.status}</Badge>
+                                <span className="text-sm text-foreground/60">
+                                  {request.profiles?.first_name} {request.profiles?.last_name}
+                                </span>
+                              </div>
+                              <h3 className="font-semibold mb-1">{request.title}</h3>
+                              <p className="text-sm text-foreground/70">{request.description}</p>
+                              <p className="text-xs text-foreground/60 mt-2">
+                                {format(new Date(request.created_at), "PPP")}
+                              </p>
+                            </div>
+                            <Button variant="outline" size="sm">
+                              Manage
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="events">
+                  <Card className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="font-serif text-2xl font-bold">Events</h2>
+                      <Button variant="hero">Create Event</Button>
+                    </div>
+                    <div className="space-y-4">
+                      {events.map((event) => (
+                        <Card key={event.id} className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-semibold mb-1">{event.title}</h3>
+                              <p className="text-sm text-foreground/70 mb-2">{event.description}</p>
+                              <div className="flex items-center gap-4 text-xs text-foreground/60">
+                                <span>{format(new Date(event.event_date), "PPP")}</span>
+                                <span>{event.city}</span>
+                                {event.capacity && <span>{event.capacity} capacity</span>}
+                              </div>
+                            </div>
+                            <Button variant="outline" size="sm">
+                              Edit
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </div>
-          </div>
-        </section>
-      </main>
-    </div>
+          </section>
+        </main>
+      </div>
+    </AdminGuard>
   );
 };
 

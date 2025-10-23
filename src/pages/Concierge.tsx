@@ -1,9 +1,16 @@
 import { Navigation } from "@/components/layout/Navigation";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Bell, Clock, CheckCircle } from "lucide-react";
+import { RequestForm } from "@/components/concierge/RequestForm";
+import { RequestsList } from "@/components/concierge/RequestsList";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Concierge = () => {
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -37,17 +44,34 @@ const Concierge = () => {
               </Card>
             </div>
 
-            <div className="text-center py-20">
-              <div className="inline-block p-8 bg-muted/50 rounded-2xl border border-primary/20">
-                <h2 className="font-serif text-2xl font-bold mb-2">Concierge Portal Coming Soon</h2>
-                <p className="text-foreground/70 mb-6">
-                  Integrating with Perfect.Live for seamless service requests
-                </p>
-                <Button variant="premium" size="lg">
-                  Join Waitlist
-                </Button>
+            {user ? (
+              <Tabs defaultValue="new" className="max-w-6xl mx-auto">
+                <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
+                  <TabsTrigger value="new">New Request</TabsTrigger>
+                  <TabsTrigger value="history">My Requests</TabsTrigger>
+                </TabsList>
+                <TabsContent value="new">
+                  <RequestForm />
+                </TabsContent>
+                <TabsContent value="history">
+                  <RequestsList />
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <div className="text-center py-12">
+                <Card className="inline-block p-8 bg-muted/50">
+                  <h2 className="font-serif text-2xl font-bold mb-2">Members Only</h2>
+                  <p className="text-foreground/70 mb-6">
+                    Please log in to access concierge services
+                  </p>
+                  <Link to="/auth">
+                    <Button variant="hero" size="lg">
+                      Login / Sign Up
+                    </Button>
+                  </Link>
+                </Card>
               </div>
-            </div>
+            )}
           </div>
         </section>
       </main>
