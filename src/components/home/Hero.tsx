@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import heroAtlanta from "@/assets/hero-atlanta.jpg";
 import heroDubai from "@/assets/hero-dubai.jpg";
 import heroMiami from "@/assets/hero-miami.jpg";
@@ -14,6 +15,7 @@ const slides = [
 
 export const Hero = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { user } = useAuth();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -66,17 +68,35 @@ export const Hero = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-            <Link to="/real-estate">
-              <Button variant="hero" size="xl" className="group">
-                Explore Properties
-                <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-            <Link to="/concierge">
-              <Button variant="premium" size="xl">
-                Book Concierge
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <Link to="/real-estate">
+                  <Button variant="hero" size="xl" className="group">
+                    Explore Properties
+                    <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+                <Link to="/concierge">
+                  <Button variant="premium" size="xl">
+                    Book Concierge
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button variant="hero" size="xl" className="group">
+                    Get Started
+                    <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+                <Link to="/membership">
+                  <Button variant="premium" size="xl">
+                    View Membership
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Slide Indicators */}

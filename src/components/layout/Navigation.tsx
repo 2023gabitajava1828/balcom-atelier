@@ -1,8 +1,10 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
   { label: "Real Estate", path: "/real-estate" },
@@ -16,6 +18,26 @@ const navItems = [
 export const Navigation = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut, loading } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to log out',
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Logged out',
+        description: 'Successfully logged out',
+      });
+      navigate('/');
+    }
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -46,12 +68,36 @@ export const Navigation = () => {
           </div>
 
           {/* Account Button */}
-          <div className="hidden lg:flex items-center space-x-4">
-            <Link to="/account">
-              <Button variant="premium" size="default">
-                Account
-              </Button>
-            </Link>
+          <div className="hidden lg:flex items-center space-x-3">
+            {!loading && (
+              user ? (
+                <>
+                  <Link to="/account">
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <User className="w-4 h-4" />
+                      Account
+                    </Button>
+                  </Link>
+                  <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/auth">
+                    <Button variant="ghost" size="sm">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link to="/auth">
+                    <Button variant="hero" size="sm">
+                      Join Membership
+                    </Button>
+                  </Link>
+                </>
+              )
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -80,11 +126,46 @@ export const Navigation = () => {
                 {item.label}
               </Link>
             ))}
-            <Link to="/account" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="premium" size="default" className="w-full">
-                Account
-              </Button>
-            </Link>
+            
+            <div className="px-4 pt-4 space-y-3 border-t border-border">
+              {!loading && (
+                user ? (
+                  <>
+                    <Link to="/account" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start gap-2" size="lg">
+                        <User className="w-5 h-5" />
+                        Account
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start gap-2" 
+                      size="lg"
+                      onClick={() => {
+                        handleLogout();
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      <LogOut className="w-5 h-5" />
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full" size="lg">
+                        Login
+                      </Button>
+                    </Link>
+                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="hero" className="w-full" size="lg">
+                        Join Membership
+                      </Button>
+                    </Link>
+                  </>
+                )
+              )}
+            </div>
           </div>
         )}
       </div>
