@@ -1,5 +1,6 @@
 import { useParams, Navigate, Link } from "react-router-dom";
 import { Navigation } from "@/components/layout/Navigation";
+import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -226,6 +227,7 @@ const CityMarket = () => {
           )}
         </div>
       </section>
+      <Footer />
     </div>
   );
 };

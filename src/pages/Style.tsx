@@ -1,4 +1,5 @@
 import { Navigation } from "@/components/layout/Navigation";
+import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Shirt, Sparkles } from "lucide-react";
 
@@ -36,6 +37,7 @@ const Style = () => {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 };

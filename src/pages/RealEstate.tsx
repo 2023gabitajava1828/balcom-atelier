@@ -1,4 +1,5 @@
 import { Navigation } from "@/components/layout/Navigation";
+import { Footer } from "@/components/layout/Footer";
 import { Card } from "@/components/ui/card";
 import { MapPin } from "lucide-react";
 import { PropertyCard } from "@/components/properties/PropertyCard";
@@ -167,6 +168,7 @@ const RealEstate = () => {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 };

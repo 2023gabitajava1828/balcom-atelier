@@ -1,4 +1,5 @@
 import { Navigation } from "@/components/layout/Navigation";
+import { Footer } from "@/components/layout/Footer";
 import { Card } from "@/components/ui/card";
 import { Bell, Clock, CheckCircle } from "lucide-react";
 import { RequestForm } from "@/components/concierge/RequestForm";
@@ -75,6 +76,7 @@ const Concierge = () => {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import { Navigation } from "@/components/layout/Navigation";
+import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/home/Hero";
 import { QuickActions } from "@/components/home/QuickActions";
 import { FeaturedMarkets } from "@/components/home/FeaturedMarkets";
@@ -12,6 +13,7 @@ const Index = () => {
         <QuickActions />
         <FeaturedMarkets />
       </main>
+      <Footer />
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import { Navigation } from "@/components/layout/Navigation";
+import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar, Users } from "lucide-react";
@@ -151,6 +152,7 @@ const Community = () => {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 };
