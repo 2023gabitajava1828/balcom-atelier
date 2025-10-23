@@ -7,119 +7,89 @@ export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gradient-to-b from-background to-muted/50 border-t">
+    <footer className="bg-black text-white border-t border-white/10">
       {/* Main Footer Content */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid md:grid-cols-4 gap-8 mb-8">
-          {/* Branding */}
-          <div className="md:col-span-2">
-            <div className="mb-4">
-              <h3 className="font-serif text-2xl font-bold mb-2 gradient-text-gold">
-                Luxury Living Collective
-              </h3>
-              <p className="text-sm text-foreground/70 mb-4">
-                Curating exceptional experiences in luxury real estate, style, and lifestyle
-              </p>
-            </div>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid md:grid-cols-2 gap-12 mb-12">
+          {/* Left Side - Contact Info */}
+          <div>
+            <h3 className="font-serif text-3xl font-bold mb-8 tracking-wider">
+              GET IN TOUCH
+            </h3>
             
-            {/* Sotheby's Logo */}
-            <div className="space-y-3">
-              <p className="text-xs uppercase tracking-wider text-foreground/60 font-semibold">
-                Brokerage
-              </p>
-              <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-lg border border-primary/20 shadow-lg">
-                <img 
-                  src={sothebysLogo} 
-                  alt="Atlanta Fine Homes Sotheby's International Realty"
-                  className="h-14 w-auto object-contain opacity-95"
-                />
+            <div className="space-y-6">
+              {/* Email */}
+              <div className="flex items-start gap-4">
+                <Mail className="w-5 h-5 mt-1 flex-shrink-0" />
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-white/60 mb-1">Email</p>
+                  <a href="mailto:contact@luxurylivingcollective.com" className="text-white hover:text-primary transition-colors">
+                    contact@luxurylivingcollective.com
+                  </a>
+                </div>
+              </div>
+
+              {/* Phone */}
+              <div className="flex items-start gap-4">
+                <Phone className="w-5 h-5 mt-1 flex-shrink-0" />
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-white/60 mb-1">Phone Number</p>
+                  <a href="tel:+14045551234" className="text-white hover:text-primary transition-colors">
+                    (404) 555-1234
+                  </a>
+                </div>
+              </div>
+
+              {/* Address */}
+              <div className="flex items-start gap-4">
+                <MapPin className="w-5 h-5 mt-1 flex-shrink-0" />
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-white/60 mb-1">Address</p>
+                  <p className="text-white">
+                    3770 Covington Highway<br />
+                    Decatur, GA 30032
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h4 className="font-semibold mb-4 text-sm uppercase tracking-wider">Explore</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link to="/real-estate" className="text-foreground/70 hover:text-primary transition-colors">
-                  Real Estate
-                </Link>
-              </li>
-              <li>
-                <Link to="/concierge" className="text-foreground/70 hover:text-primary transition-colors">
-                  Concierge
-                </Link>
-              </li>
-              <li>
-                <Link to="/style" className="text-foreground/70 hover:text-primary transition-colors">
-                  Style
-                </Link>
-              </li>
-              <li>
-                <Link to="/wealth" className="text-foreground/70 hover:text-primary transition-colors">
-                  Wealth
-                </Link>
-              </li>
-              <li>
-                <Link to="/community" className="text-foreground/70 hover:text-primary transition-colors">
-                  Community
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Markets */}
-          <div>
-            <h4 className="font-semibold mb-4 text-sm uppercase tracking-wider">Markets</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link to="/real-estate/atlanta" className="text-foreground/70 hover:text-primary transition-colors">
-                  Atlanta
-                </Link>
-              </li>
-              <li>
-                <Link to="/real-estate/miami" className="text-foreground/70 hover:text-primary transition-colors">
-                  Miami
-                </Link>
-              </li>
-              <li>
-                <Link to="/real-estate/dubai" className="text-foreground/70 hover:text-primary transition-colors">
-                  Dubai
-                </Link>
-              </li>
-            </ul>
+          {/* Right Side - Logo */}
+          <div className="flex items-start justify-end">
+            <div className="max-w-xs">
+              <img 
+                src={sothebysLogo} 
+                alt="Atlanta Fine Homes Sotheby's International Realty"
+                className="w-full h-auto"
+              />
+            </div>
           </div>
         </div>
 
-        <Separator className="my-8" />
+        {/* Legal Disclaimer */}
+        <div className="border-t border-white/10 pt-8">
+          <p className="text-xs text-white/60 leading-relaxed mb-6">
+            Sotheby's International Realty® and the Sotheby's International Realty Logo are service marks licensed to Sotheby's International Realty Affiliates LLC and used with permission. Atlanta Fine Homes Sotheby's International Realty fully supports the principles of the Fair Housing Act and the Equal Opportunity Act. Each office is independently owned and operated. Any services or products provided by independently owned and operated franchisees are not provided by, affiliated with or related to Sotheby's International Realty Affiliates LLC nor any of its affiliated companies.
+          </p>
+
+          {/* Logos */}
+          <div className="flex items-center gap-4 mb-8">
+            <div className="text-white/80 text-xs font-semibold">
+              REALTOR®
+            </div>
+            <div className="text-white/80 text-xs font-semibold">
+              EQUAL HOUSING OPPORTUNITY
+            </div>
+          </div>
+        </div>
+
+        <Separator className="bg-white/10 mb-8" />
 
         {/* Bottom Bar */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-foreground/60">
-          <div className="text-center md:text-left">
-            <p>&copy; {currentYear} Luxury Living Collective. All rights reserved.</p>
-            <p className="text-xs mt-1">
-              Licensed in Georgia | Equal Housing Opportunity
-            </p>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/60">
+          <div>
+            <p>Copyright © {currentYear} | <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></p>
           </div>
-          
-          <div className="flex items-center gap-6">
-            <Link to="/privacy" className="hover:text-primary transition-colors text-xs">
-              Privacy Policy
-            </Link>
-            <Link to="/terms" className="hover:text-primary transition-colors text-xs">
-              Terms of Service
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Sotheby's Brand Bar */}
-      <div className="bg-background border-t py-4">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-xs text-foreground/50">
-            Each office is independently owned and operated. Sotheby's International Realty® is a registered trademark licensed to Sotheby's International Realty Affiliates LLC.
-          </p>
         </div>
       </div>
     </footer>
