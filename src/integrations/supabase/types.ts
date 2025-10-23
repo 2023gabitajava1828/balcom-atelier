@@ -14,16 +14,516 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      concierge_messages: {
+        Row: {
+          attachments: string[] | null
+          created_at: string | null
+          id: string
+          message: string
+          request_id: string
+          sender_id: string
+        }
+        Insert: {
+          attachments?: string[] | null
+          created_at?: string | null
+          id?: string
+          message: string
+          request_id: string
+          sender_id: string
+        }
+        Update: {
+          attachments?: string[] | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          request_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concierge_messages_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "concierge_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      concierge_requests: {
+        Row: {
+          assigned_to: string | null
+          budget_max: number | null
+          budget_min: number | null
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          preferred_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          preferred_date?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          preferred_date?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          created_at: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          folder: string
+          id: string
+          shared_with: string[] | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          folder: string
+          id?: string
+          shared_with?: string[] | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          folder?: string
+          id?: string
+          shared_with?: string[] | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      event_rsvps: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          guests: number | null
+          id: string
+          notes: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          guests?: number | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          guests?: number | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          capacity: number | null
+          city: string
+          created_at: string | null
+          description: string | null
+          dress_code: string | null
+          event_date: string
+          id: string
+          image_url: string | null
+          min_tier: string | null
+          partner_logos: string[] | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          venue: string | null
+        }
+        Insert: {
+          capacity?: number | null
+          city: string
+          created_at?: string | null
+          description?: string | null
+          dress_code?: string | null
+          event_date: string
+          id?: string
+          image_url?: string | null
+          min_tier?: string | null
+          partner_logos?: string[] | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Update: {
+          capacity?: number | null
+          city?: string
+          created_at?: string | null
+          description?: string | null
+          dress_code?: string | null
+          event_date?: string
+          id?: string
+          image_url?: string | null
+          min_tier?: string | null
+          partner_logos?: string[] | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Relationships: []
+      }
+      fit_profiles: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string | null
+          dress_size: string | null
+          id: string
+          notes: string | null
+          occasions: string[] | null
+          pant_size: string | null
+          preferred_brands: string[] | null
+          shirt_size: string | null
+          shoe_size: string | null
+          style_preferences: string[] | null
+          suit_size: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string | null
+          dress_size?: string | null
+          id?: string
+          notes?: string | null
+          occasions?: string[] | null
+          pant_size?: string | null
+          preferred_brands?: string[] | null
+          shirt_size?: string | null
+          shoe_size?: string | null
+          style_preferences?: string[] | null
+          suit_size?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string | null
+          dress_size?: string | null
+          id?: string
+          notes?: string | null
+          occasions?: string[] | null
+          pant_size?: string | null
+          preferred_brands?: string[] | null
+          shirt_size?: string | null
+          shoe_size?: string | null
+          style_preferences?: string[] | null
+          suit_size?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lookbooks: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          items: Json
+          member_notes: string | null
+          status: string | null
+          title: string
+          total_price: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          items?: Json
+          member_notes?: string | null
+          status?: string | null
+          title: string
+          total_price?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          items?: Json
+          member_notes?: string | null
+          status?: string | null
+          title?: string
+          total_price?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      memberships: {
+        Row: {
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          status: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          tier: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      properties: {
+        Row: {
+          address: string | null
+          bathrooms: number | null
+          bedrooms: number | null
+          city: string
+          country: string
+          created_at: string | null
+          description: string | null
+          features: string[] | null
+          id: string
+          images: string[] | null
+          latitude: number | null
+          lifestyle_tags: string[] | null
+          longitude: number | null
+          price: number
+          property_type: string | null
+          region: string | null
+          sqft: number | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city: string
+          country: string
+          created_at?: string | null
+          description?: string | null
+          features?: string[] | null
+          id?: string
+          images?: string[] | null
+          latitude?: number | null
+          lifestyle_tags?: string[] | null
+          longitude?: number | null
+          price: number
+          property_type?: string | null
+          region?: string | null
+          sqft?: number | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city?: string
+          country?: string
+          created_at?: string | null
+          description?: string | null
+          features?: string[] | null
+          id?: string
+          images?: string[] | null
+          latitude?: number | null
+          lifestyle_tags?: string[] | null
+          longitude?: number | null
+          price?: number
+          property_type?: string | null
+          region?: string | null
+          sqft?: number | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      saved_properties: {
+        Row: {
+          created_at: string | null
+          id: string
+          property_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          property_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          property_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_properties_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "MEMBER" | "CONCIERGE" | "ADVISOR" | "ADMIN"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +650,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["MEMBER", "CONCIERGE", "ADVISOR", "ADMIN"],
+    },
   },
 } as const
