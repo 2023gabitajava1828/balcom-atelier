@@ -19,25 +19,31 @@ export type Database = {
           attachments: string[] | null
           created_at: string | null
           id: string
+          is_read: boolean | null
           message: string
           request_id: string
           sender_id: string
+          sender_type: string | null
         }
         Insert: {
           attachments?: string[] | null
           created_at?: string | null
           id?: string
+          is_read?: boolean | null
           message: string
           request_id: string
           sender_id: string
+          sender_type?: string | null
         }
         Update: {
           attachments?: string[] | null
           created_at?: string | null
           id?: string
+          is_read?: boolean | null
           message?: string
           request_id?: string
           sender_id?: string
+          sender_type?: string | null
         }
         Relationships: [
           {

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import RealEstate from "./pages/RealEstate";
 import Concierge from "./pages/Concierge";
+import ConciergeRequest from "./pages/ConciergeRequest";
 import Style from "./pages/Style";
 import Wealth from "./pages/Wealth";
 import Community from "./pages/Community";
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/real-estate" element={<RealEstate />} />
           <Route path="/concierge" element={<Concierge />} />
+          <Route path="/concierge/request/:id" element={<ConciergeRequest />} />
           <Route path="/style" element={<Style />} />
           <Route path="/wealth" element={<Wealth />} />
           <Route path="/community" element={<Community />} />
