@@ -98,7 +98,7 @@ const Membership = () => {
                     {tier.features.map((feature) => (
                       <li key={feature} className="flex items-start">
                         <Check className="w-5 h-5 text-foreground mr-2 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm text-foreground/80">{feature}</span>
+                        <span className="text-sm text-foreground font-semibold">{feature}</span>
                       </li>
                     ))}
                   </ul>
