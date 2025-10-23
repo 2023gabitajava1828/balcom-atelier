@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { Home, Mail, Phone, MapPin } from "lucide-react";
+import sothebysLogo from "@/assets/sothebys-logo.png";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -21,18 +22,17 @@ export const Footer = () => {
               </p>
             </div>
             
-            {/* Sotheby's Affiliation */}
-            <div className="space-y-2">
+            {/* Sotheby's Logo */}
+            <div className="space-y-3">
               <p className="text-xs uppercase tracking-wider text-foreground/60 font-semibold">
                 Brokerage
               </p>
-              <div className="space-y-1">
-                <p className="font-serif text-lg font-semibold text-foreground">
-                  Atlanta Fine Homes
-                </p>
-                <p className="font-serif text-base text-foreground/90 italic">
-                  Sotheby's International Realty
-                </p>
+              <div className="bg-gradient-to-br from-muted/50 to-muted/30 p-4 rounded-lg border border-primary/10">
+                <img 
+                  src={sothebysLogo} 
+                  alt="Atlanta Fine Homes Sotheby's International Realty"
+                  className="h-12 w-auto object-contain"
+                />
               </div>
             </div>
           </div>
