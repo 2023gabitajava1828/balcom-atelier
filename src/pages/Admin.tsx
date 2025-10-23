@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { ConciergeRequestsManager } from "@/components/admin/ConciergeRequestsManager";
 
 const Admin = () => {
   const [stats, setStats] = useState({
@@ -16,12 +17,10 @@ const Admin = () => {
     events: 0,
     properties: 0,
   });
-  const [requests, setRequests] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
 
   useEffect(() => {
     fetchStats();
-    fetchRequests();
     fetchEvents();
   }, []);
 
@@ -39,16 +38,6 @@ const Admin = () => {
       events: eventsRes.count || 0,
       properties: propertiesRes.count || 0,
     });
-  };
-
-  const fetchRequests = async () => {
-    const { data } = await supabase
-      .from("concierge_requests")
-      .select("*, profiles(first_name, last_name)")
-      .order("created_at", { ascending: false })
-      .limit(10);
-
-    if (data) setRequests(data);
   };
 
   const fetchEvents = async () => {
@@ -109,33 +98,7 @@ const Admin = () => {
                 </TabsList>
 
                 <TabsContent value="requests">
-                  <Card className="p-6">
-                    <h2 className="font-serif text-2xl font-bold mb-6">Recent Requests</h2>
-                    <div className="space-y-4">
-                      {requests.map((request) => (
-                        <Card key={request.id} className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <Badge>{request.status}</Badge>
-                                <span className="text-sm text-foreground/60">
-                                  {request.profiles?.first_name} {request.profiles?.last_name}
-                                </span>
-                              </div>
-                              <h3 className="font-semibold mb-1">{request.title}</h3>
-                              <p className="text-sm text-foreground/70">{request.description}</p>
-                              <p className="text-xs text-foreground/60 mt-2">
-                                {format(new Date(request.created_at), "PPP")}
-                              </p>
-                            </div>
-                            <Button variant="outline" size="sm">
-                              Manage
-                            </Button>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </Card>
+                  <ConciergeRequestsManager />
                 </TabsContent>
 
                 <TabsContent value="events">
