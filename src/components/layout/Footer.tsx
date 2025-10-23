@@ -27,11 +27,11 @@ export const Footer = () => {
               <p className="text-xs uppercase tracking-wider text-foreground/60 font-semibold">
                 Brokerage
               </p>
-              <div className="bg-gradient-to-br from-muted/50 to-muted/30 p-4 rounded-lg border border-primary/10">
+              <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-lg border border-primary/20 shadow-lg">
                 <img 
                   src={sothebysLogo} 
                   alt="Atlanta Fine Homes Sotheby's International Realty"
-                  className="h-12 w-auto object-contain"
+                  className="h-14 w-auto object-contain opacity-95"
                 />
               </div>
             </div>
