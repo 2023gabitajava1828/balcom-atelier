@@ -62,10 +62,10 @@ const Membership = () => {
         <section className="py-20 bg-gradient-to-b from-background to-muted/30">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h1 className="font-serif text-5xl font-bold mb-4 text-foreground">
-                Choose Your <span className="text-primary">Membership</span>
+              <h1 className="font-serif text-5xl font-bold mb-4">
+                Choose Your <span className="gradient-text-gold">Membership</span>
               </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
                 Elevate your lifestyle with our tiered membership program
               </p>
             </div>
@@ -74,31 +74,31 @@ const Membership = () => {
               {tiers.map((tier) => (
                 <Card
                   key={tier.name}
-                  className={`p-8 relative bg-card ${
-                    tier.popular ? "border-2 border-primary shadow-gold ring-2 ring-primary/20" : "border border-border"
+                  className={`p-8 relative ${
+                    tier.popular ? "border-2 border-primary shadow-gold" : ""
                   }`}
                 >
                   {tier.popular && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-6 py-1.5 rounded-full text-sm font-semibold shadow-lg">
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold">
                       Most Popular
                     </div>
                   )}
 
                   <div className="text-center mb-6">
-                    <tier.icon className="w-14 h-14 text-primary mx-auto mb-4" />
-                    <h3 className="font-serif text-3xl font-bold mb-3 text-foreground">{tier.name}</h3>
-                    <p className="text-base text-muted-foreground mb-6 min-h-[48px]">{tier.description}</p>
-                    <div className="flex items-baseline justify-center bg-muted/50 rounded-xl py-4 px-6">
-                      <span className="text-5xl font-bold text-primary">${tier.price}</span>
-                      <span className="text-lg text-muted-foreground ml-2">/{tier.period}</span>
+                    <tier.icon className="w-12 h-12 text-primary mx-auto mb-4" />
+                    <h3 className="font-serif text-2xl font-bold mb-2">{tier.name}</h3>
+                    <p className="text-sm text-foreground/60 mb-4">{tier.description}</p>
+                    <div className="flex items-baseline justify-center">
+                      <span className="text-4xl font-bold gradient-text-gold">${tier.price}</span>
+                      <span className="text-foreground/60 ml-2">/{tier.period}</span>
                     </div>
                   </div>
 
-                  <ul className="space-y-4 mb-8 min-h-[240px]">
+                  <ul className="space-y-3 mb-8">
                     {tier.features.map((feature) => (
                       <li key={feature} className="flex items-start">
-                        <Check className="w-5 h-5 text-primary mr-3 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm text-foreground leading-relaxed">{feature}</span>
+                        <Check className="w-5 h-5 text-foreground mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-foreground/80">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -114,8 +114,8 @@ const Membership = () => {
               ))}
             </div>
 
-            <div className="text-center mt-16">
-              <p className="text-base text-muted-foreground">
+            <div className="text-center mt-12">
+              <p className="text-sm text-foreground/60">
                 All memberships include 30-day satisfaction guarantee
               </p>
             </div>
