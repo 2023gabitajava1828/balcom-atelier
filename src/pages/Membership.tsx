@@ -58,7 +58,7 @@ const Membership = () => {
 
                   <ul className="space-y-3 mb-8">
                     {tier.features.map(feature => <li key={feature} className="flex items-start">
-                        <Check className="w-5 h-5 text-foreground mr-2 flex-shrink-0 mt-0.5" />
+                        <Check className="w-5 h-5 text-slate-950 mr-2 flex-shrink-0 mt-0.5" />
                         <span className="text-sm font-semibold text-slate-950">{feature}</span>
                       </li>)}
                   </ul>
