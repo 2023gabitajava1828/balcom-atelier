@@ -57,7 +57,7 @@ const Concierge = () => {
                 </TabsContent>
               </Tabs> : <div className="text-center py-12">
                 <Card className="inline-block p-8 bg-muted/50">
-                  <h2 className="font-serif text-2xl font-bold mb-2">Members Only</h2>
+                  <h2 className="font-serif text-2xl font-bold mb-2 text-primary">Members Only</h2>
                   <p className="text-foreground/70 mb-6">
                     Please log in to access concierge services
                   </p>
