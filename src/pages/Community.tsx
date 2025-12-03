@@ -111,7 +111,7 @@ const Community = () => {
             {loading ? <div className="text-center py-12">
                 <p className="text-foreground/60">Loading events...</p>
               </div> : events.length === 0 ? <div className="text-center py-20">
-                <div className="inline-block p-8 bg-muted/50 rounded-2xl border border-primary/20">
+                <div className="text-foreground/70 mb-4">
                   <div className="flex justify-center gap-4 mb-4">
                     <Calendar className="w-12 h-12 text-primary" />
                     <Users className="w-12 h-12 text-primary" />
