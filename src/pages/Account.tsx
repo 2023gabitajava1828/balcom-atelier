@@ -1,4 +1,6 @@
 import { Navigation } from "@/components/layout/Navigation";
+import { Footer } from "@/components/layout/Footer";
+import { BottomTabs } from "@/components/layout/BottomTabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { User, Settings, CreditCard, LogIn, Mail, Shield } from "lucide-react";
@@ -34,7 +36,7 @@ const Account = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="pt-20">
+      <main className="pt-20 pb-20 md:pb-0">
         <section className="py-20 bg-gradient-to-b from-background to-muted/30">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
             <div className="text-center mb-12">
@@ -133,6 +135,8 @@ const Account = () => {
           </div>
         </section>
       </main>
+      <Footer className="hidden md:block" />
+      <BottomTabs />
     </div>
   );
 };

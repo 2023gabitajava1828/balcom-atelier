@@ -1,5 +1,6 @@
 import { Navigation } from "@/components/layout/Navigation";
 import { Footer } from "@/components/layout/Footer";
+import { BottomTabs } from "@/components/layout/BottomTabs";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -236,7 +237,7 @@ const Search = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="pt-20 pb-24">
+      <main className="pt-20 pb-24 md:pb-24">
         {/* Header */}
         <div className="border-b border-border/50 bg-card/50">
           <div className="container mx-auto px-4 py-6">
@@ -490,7 +491,8 @@ const Search = () => {
           )}
         </div>
       </main>
-      <Footer />
+      <Footer className="hidden md:block" />
+      <BottomTabs />
     </div>
   );
 };

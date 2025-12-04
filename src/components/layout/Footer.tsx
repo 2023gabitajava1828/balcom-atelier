@@ -1,11 +1,15 @@
 import { Link } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 
-export const Footer = () => {
+interface FooterProps {
+  className?: string;
+}
+
+export const Footer = ({ className }: FooterProps) => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-card border-t border-border/50">
+    <footer className={`bg-card border-t border-border/50 ${className || ""}`}>
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-4 gap-10 mb-10">

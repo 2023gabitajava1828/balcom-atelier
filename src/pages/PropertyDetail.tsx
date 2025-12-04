@@ -1,5 +1,6 @@
 import { Navigation } from "@/components/layout/Navigation";
 import { Footer } from "@/components/layout/Footer";
+import { BottomTabs } from "@/components/layout/BottomTabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -396,7 +397,8 @@ const PropertyDetail = () => {
         </div>
       </main>
 
-      <Footer />
+      <Footer className="hidden md:block" />
+      <BottomTabs />
     </div>
   );
 };
