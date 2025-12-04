@@ -6,10 +6,12 @@ import { Card } from "@/components/ui/card";
 import { User, Settings, CreditCard, LogIn, Mail, Shield } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useMembership, TIER_LABELS } from "@/hooks/useMembership";
 import { useEffect } from "react";
 
 const Account = () => {
   const { user, loading } = useAuth();
+  const { tier, loading: membershipLoading } = useMembership();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -124,7 +126,9 @@ const Account = () => {
                 </div>
                 <div className="flex justify-between py-3 border-b border-border">
                   <span className="text-muted-foreground">Current Tier</span>
-                  <span className="font-medium text-primary">Silver</span>
+                  <span className="font-medium text-primary capitalize">
+                    {membershipLoading ? "..." : TIER_LABELS[tier]}
+                  </span>
                 </div>
                 <div className="flex justify-between py-3">
                   <span className="text-muted-foreground">Account Status</span>
