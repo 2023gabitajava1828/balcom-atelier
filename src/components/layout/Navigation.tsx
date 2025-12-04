@@ -40,13 +40,13 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+    <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="font-serif text-2xl font-bold gradient-text-gold">
-              Balcom Privé
+          <Link to="/" className="flex items-center space-x-3 group">
+            <span className="font-serif text-2xl font-bold text-foreground tracking-tight">
+              Balcom <span className="gradient-text-gold">Privé</span>
             </span>
           </Link>
 
@@ -57,7 +57,7 @@ export const Navigation = () => {
                 <Button
                   variant="ghost"
                   className={cn(
-                    "text-foreground/80 hover:text-foreground transition-elegant",
+                    "text-muted-foreground hover:text-foreground transition-fast text-sm font-medium",
                     location.pathname === item.path && "text-primary"
                   )}
                 >
@@ -73,7 +73,7 @@ export const Navigation = () => {
               user ? (
                 <>
                   <Link to="/account">
-                    <Button variant="ghost" size="sm" className="gap-2">
+                    <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
                       <User className="w-4 h-4" />
                       Account
                     </Button>
@@ -86,13 +86,13 @@ export const Navigation = () => {
               ) : (
                 <>
                   <Link to="/auth">
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
                       Login
                     </Button>
                   </Link>
                   <Link to="/auth">
-                    <Button variant="hero" size="sm">
-                      Join Membership
+                    <Button variant="default" size="sm">
+                      Join Now
                     </Button>
                   </Link>
                 </>
@@ -102,7 +102,7 @@ export const Navigation = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="lg:hidden p-2 text-foreground"
+            className="lg:hidden p-2 text-foreground hover:text-primary transition-fast"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -112,22 +112,23 @@ export const Navigation = () => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden py-6 space-y-4 border-t border-border">
-            {navItems.map((item) => (
+          <div className="lg:hidden py-6 space-y-2 border-t border-border/50 animate-fade-in">
+            {navItems.map((item, index) => (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileMenuOpen(false)}
                 className={cn(
-                  "block px-4 py-2 text-foreground/80 hover:text-primary transition-elegant",
-                  location.pathname === item.path && "text-primary font-semibold"
+                  "block px-4 py-3 text-muted-foreground hover:text-foreground hover:bg-card rounded-lg transition-fast",
+                  location.pathname === item.path && "text-primary bg-primary/10"
                 )}
+                style={{ animationDelay: `${index * 50}ms` }}
               >
                 {item.label}
               </Link>
             ))}
             
-            <div className="px-4 pt-4 space-y-3 border-t border-border">
+            <div className="px-4 pt-4 space-y-3 border-t border-border/50">
               {!loading && (
                 user ? (
                   <>
@@ -158,8 +159,8 @@ export const Navigation = () => {
                       </Button>
                     </Link>
                     <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="hero" className="w-full" size="lg">
-                        Join Membership
+                      <Button variant="default" className="w-full" size="lg">
+                        Join Now
                       </Button>
                     </Link>
                   </>
