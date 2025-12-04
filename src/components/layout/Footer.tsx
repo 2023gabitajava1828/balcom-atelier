@@ -1,36 +1,35 @@
 import { Link } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
-import { Home, Mail, Phone, MapPin } from "lucide-react";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gradient-to-b from-background to-muted/50 border-t">
+    <footer className="bg-card border-t border-border/50">
       {/* Main Footer Content */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid md:grid-cols-4 gap-8 mb-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid md:grid-cols-4 gap-10 mb-10">
           {/* Branding */}
-          <div className="md:col-span-2">
-            <div className="mb-4">
-              <h3 className="font-serif text-2xl font-bold mb-2 gradient-text-gold">
-                Luxury Living Collective
+          <div className="md:col-span-2 space-y-6">
+            <div>
+              <h3 className="font-serif text-2xl font-bold mb-3">
+                Balcom <span className="gradient-text-gold">Privé</span>
               </h3>
-              <p className="text-sm text-foreground/70 mb-4">
-                Curating exceptional experiences in luxury real estate, style, and lifestyle
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">
+                Curating exceptional experiences in luxury real estate, white-glove concierge, and tailored lifestyle services across 84+ countries.
               </p>
             </div>
             
             {/* Sotheby's Affiliation */}
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wider text-foreground/60 font-semibold">
+            <div className="space-y-2 pt-4 border-t border-border/50">
+              <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
                 Brokerage
               </p>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 <p className="font-serif text-lg font-semibold text-foreground">
                   Atlanta Fine Homes
                 </p>
-                <p className="font-serif text-base text-foreground/90 italic">
+                <p className="font-serif text-sm text-muted-foreground italic">
                   Sotheby's International Realty
                 </p>
               </div>
@@ -39,75 +38,69 @@ export const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-semibold mb-4 text-sm uppercase tracking-wider">Explore</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link to="/real-estate" className="text-foreground/70 hover:text-primary transition-colors">
-                  Real Estate
-                </Link>
-              </li>
-              <li>
-                <Link to="/concierge" className="text-foreground/70 hover:text-primary transition-colors">
-                  Concierge
-                </Link>
-              </li>
-              <li>
-                <Link to="/style" className="text-foreground/70 hover:text-primary transition-colors">
-                  Style
-                </Link>
-              </li>
-              <li>
-                <Link to="/wealth" className="text-foreground/70 hover:text-primary transition-colors">
-                  Wealth
-                </Link>
-              </li>
-              <li>
-                <Link to="/community" className="text-foreground/70 hover:text-primary transition-colors">
-                  Community
-                </Link>
-              </li>
+            <h4 className="font-semibold mb-5 text-xs uppercase tracking-widest text-muted-foreground">
+              Explore
+            </h4>
+            <ul className="space-y-3 text-sm">
+              {[
+                { label: "Real Estate", path: "/real-estate" },
+                { label: "Concierge", path: "/concierge" },
+                { label: "Style", path: "/style" },
+                { label: "Wealth", path: "/wealth" },
+                { label: "Community", path: "/community" },
+              ].map((item) => (
+                <li key={item.path}>
+                  <Link 
+                    to={item.path} 
+                    className="text-muted-foreground hover:text-primary transition-fast"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Markets */}
           <div>
-            <h4 className="font-semibold mb-4 text-sm uppercase tracking-wider">Markets</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link to="/real-estate/atlanta" className="text-foreground/70 hover:text-primary transition-colors">
-                  Atlanta
-                </Link>
-              </li>
-              <li>
-                <Link to="/real-estate/miami" className="text-foreground/70 hover:text-primary transition-colors">
-                  Miami
-                </Link>
-              </li>
-              <li>
-                <Link to="/real-estate/dubai" className="text-foreground/70 hover:text-primary transition-colors">
-                  Dubai
-                </Link>
-              </li>
+            <h4 className="font-semibold mb-5 text-xs uppercase tracking-widest text-muted-foreground">
+              Markets
+            </h4>
+            <ul className="space-y-3 text-sm">
+              {[
+                { label: "Atlanta", path: "/real-estate/atlanta" },
+                { label: "Miami", path: "/real-estate/miami" },
+                { label: "Dubai", path: "/real-estate/dubai" },
+              ].map((item) => (
+                <li key={item.path}>
+                  <Link 
+                    to={item.path} 
+                    className="text-muted-foreground hover:text-primary transition-fast"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
 
-        <Separator className="my-8" />
+        <Separator className="bg-border/50" />
 
         {/* Bottom Bar */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-foreground/60">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 text-sm text-muted-foreground">
           <div className="text-center md:text-left">
-            <p>&copy; {currentYear} Luxury Living Collective. All rights reserved.</p>
+            <p>&copy; {currentYear} Balcom Privé. All rights reserved.</p>
             <p className="text-xs mt-1">
               Licensed in Georgia | Equal Housing Opportunity
             </p>
           </div>
           
           <div className="flex items-center gap-6">
-            <Link to="/privacy" className="hover:text-primary transition-colors text-xs">
+            <Link to="/privacy" className="hover:text-foreground transition-fast text-xs">
               Privacy Policy
             </Link>
-            <Link to="/terms" className="hover:text-primary transition-colors text-xs">
+            <Link to="/terms" className="hover:text-foreground transition-fast text-xs">
               Terms of Service
             </Link>
           </div>
@@ -115,9 +108,9 @@ export const Footer = () => {
       </div>
 
       {/* Sotheby's Brand Bar */}
-      <div className="bg-background border-t py-4">
+      <div className="bg-background border-t border-border/50 py-4">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-xs text-foreground/50">
+          <p className="text-center text-xs text-muted-foreground/70">
             Each office is independently owned and operated. Sotheby's International Realty® is a registered trademark licensed to Sotheby's International Realty Affiliates LLC.
           </p>
         </div>
