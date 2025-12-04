@@ -1,30 +1,82 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2, Lock, Crown, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useMembership, MembershipTier, TIER_LABELS } from "@/hooks/useMembership";
 
-const categories = [
-  { value: "travel", label: "Travel & Transportation" },
-  { value: "dining", label: "Fine Dining & Reservations" },
-  { value: "events", label: "Event Planning & Access" },
-  { value: "shopping", label: "Personal Shopping" },
-  { value: "lifestyle", label: "Lifestyle Services" },
-  { value: "other", label: "Other Request" },
+interface Category {
+  value: string;
+  label: string;
+  description: string;
+  minTier: MembershipTier;
+}
+
+const categories: Category[] = [
+  { 
+    value: "travel", 
+    label: "Travel & Transportation", 
+    description: "Airport transfers, private jets, luxury car rentals",
+    minTier: "silver" 
+  },
+  { 
+    value: "dining", 
+    label: "Fine Dining & Reservations", 
+    description: "Michelin restaurants, private chefs, wine tastings",
+    minTier: "silver" 
+  },
+  { 
+    value: "events", 
+    label: "Event Planning & Access", 
+    description: "VIP access, private events, exclusive tickets",
+    minTier: "gold" 
+  },
+  { 
+    value: "shopping", 
+    label: "Personal Shopping", 
+    description: "Luxury goods, private showings, style curation",
+    minTier: "gold" 
+  },
+  { 
+    value: "lifestyle", 
+    label: "Lifestyle Services", 
+    description: "Property management, household staff, wellness",
+    minTier: "platinum" 
+  },
+  { 
+    value: "investment", 
+    label: "Investment Advisory", 
+    description: "Off-market properties, wealth management intros",
+    minTier: "platinum" 
+  },
+  { 
+    value: "other", 
+    label: "Other Request", 
+    description: "Any special request not listed above",
+    minTier: "silver" 
+  },
 ];
+
+const tierIcons: Record<MembershipTier, React.ReactNode> = {
+  silver: null,
+  gold: <Crown className="w-3.5 h-3.5" />,
+  platinum: <Sparkles className="w-3.5 h-3.5" />,
+};
 
 export const RequestForm = () => {
   const { user } = useAuth();
+  const { tier, canAccessTier, loading: membershipLoading } = useMembership();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -36,6 +88,18 @@ export const RequestForm = () => {
     budget_min: "",
     budget_max: "",
   });
+
+  const handleCategorySelect = (value: string) => {
+    const category = categories.find(c => c.value === value);
+    if (category && !canAccessTier(category.minTier)) {
+      toast({
+        title: `${TIER_LABELS[category.minTier]} Required`,
+        description: `Upgrade to ${TIER_LABELS[category.minTier]} to access ${category.label}`,
+      });
+      return;
+    }
+    setFormData({ ...formData, category: value });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +118,17 @@ export const RequestForm = () => {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Double-check tier access
+    const category = categories.find(c => c.value === formData.category);
+    if (category && !canAccessTier(category.minTier)) {
+      toast({
+        title: "Upgrade Required",
+        description: `This service requires ${TIER_LABELS[category.minTier]} membership`,
         variant: "destructive",
       });
       return;
@@ -101,25 +176,73 @@ export const RequestForm = () => {
 
   return (
     <Card className="p-8 max-w-2xl mx-auto">
-      <h2 className="font-serif text-3xl font-bold mb-6">New Service Request</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="font-serif text-3xl font-bold">New Service Request</h2>
+        <Badge 
+          variant="outline" 
+          className="capitalize border-primary/30 text-primary"
+        >
+          {tier} Member
+        </Badge>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <Label htmlFor="category">Service Category *</Label>
           <Select
             value={formData.category}
-            onValueChange={(value) => setFormData({ ...formData, category: value })}
+            onValueChange={handleCategorySelect}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select a category" />
             </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
+            <SelectContent className="max-h-80">
+              {categories.map((cat) => {
+                const isLocked = !canAccessTier(cat.minTier);
+                return (
+                  <SelectItem 
+                    key={cat.value} 
+                    value={cat.value}
+                    disabled={isLocked}
+                    className={isLocked ? "opacity-60" : ""}
+                  >
+                    <div className="flex items-center gap-3 py-1">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span>{cat.label}</span>
+                          {isLocked && <Lock className="w-3.5 h-3.5 text-muted-foreground" />}
+                          {cat.minTier !== "silver" && (
+                            <span className={`text-xs ${cat.minTier === "gold" ? "text-yellow-500" : "text-primary"}`}>
+                              {tierIcons[cat.minTier]}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {cat.description}
+                        </p>
+                      </div>
+                    </div>
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
+          
+          {/* Upgrade prompt for locked categories */}
+          {tier === "silver" && (
+            <div className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <p className="text-sm text-muted-foreground">
+                <Crown className="w-4 h-4 inline mr-1 text-primary" />
+                Upgrade to <span className="text-primary font-medium">Gold</span> or{" "}
+                <span className="text-primary font-medium">Platinum</span> to unlock premium services
+              </p>
+              <Link to="/membership">
+                <Button variant="link" size="sm" className="px-0 h-auto mt-1 text-primary">
+                  View Membership Options →
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         <div>
@@ -186,7 +309,7 @@ export const RequestForm = () => {
           </div>
         </div>
 
-        <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading}>
+        <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading || membershipLoading}>
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Submit Request
         </Button>
