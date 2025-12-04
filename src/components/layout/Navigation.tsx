@@ -7,10 +7,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
+  { label: "Search", path: "/search" },
   { label: "Real Estate", path: "/real-estate" },
   { label: "Concierge", path: "/concierge" },
   { label: "Style", path: "/style" },
-  { label: "Wealth", path: "/wealth" },
   { label: "Community", path: "/community" },
   { label: "Membership", path: "/membership" },
 ];
