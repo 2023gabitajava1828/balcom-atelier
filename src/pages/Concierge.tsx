@@ -1,5 +1,6 @@
 import { Navigation } from "@/components/layout/Navigation";
 import { Footer } from "@/components/layout/Footer";
+import { BottomTabs } from "@/components/layout/BottomTabs";
 import { Card } from "@/components/ui/card";
 import { Bell, Clock, CheckCircle } from "lucide-react";
 import { RequestForm } from "@/components/concierge/RequestForm";
@@ -8,13 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+
 const Concierge = () => {
-  const {
-    user
-  } = useAuth();
-  return <div className="min-h-screen bg-background">
+  const { user } = useAuth();
+
+  return (
+    <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="pt-20">
+      <main className="pt-20 pb-20 md:pb-0">
         <section className="py-20 bg-gradient-to-b from-background to-muted/30">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
@@ -44,7 +46,8 @@ const Concierge = () => {
               </Card>
             </div>
 
-            {user ? <Tabs defaultValue="new" className="max-w-6xl mx-auto">
+            {user ? (
+              <Tabs defaultValue="new" className="max-w-6xl mx-auto">
                 <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
                   <TabsTrigger value="new">New Request</TabsTrigger>
                   <TabsTrigger value="history">My Requests</TabsTrigger>
@@ -55,7 +58,9 @@ const Concierge = () => {
                 <TabsContent value="history">
                   <RequestsList />
                 </TabsContent>
-              </Tabs> : <div className="text-center py-12">
+              </Tabs>
+            ) : (
+              <div className="text-center py-12">
                 <Card className="inline-block p-8 bg-muted/50">
                   <h2 className="font-serif text-2xl font-bold mb-2 text-primary">Members Only</h2>
                   <p className="text-foreground/70 mb-6">
@@ -67,11 +72,15 @@ const Concierge = () => {
                     </Button>
                   </Link>
                 </Card>
-              </div>}
+              </div>
+            )}
           </div>
         </section>
       </main>
-      <Footer />
-    </div>;
+      <Footer className="hidden md:block" />
+      <BottomTabs />
+    </div>
+  );
 };
+
 export default Concierge;
