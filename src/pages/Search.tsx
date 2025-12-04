@@ -1,5 +1,6 @@
 import { Navigation } from "@/components/layout/Navigation";
 import { Footer } from "@/components/layout/Footer";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -519,68 +520,71 @@ const PropertySearchCard = ({
   formatPrice: (price: number) => string;
   index: number;
 }) => (
-  <Card 
-    className="overflow-hidden bg-card border-border/50 hover:border-primary/30 transition-elegant hover-card-lift animate-fade-in"
-    style={{ animationDelay: `${index * 50}ms` }}
-  >
-    <div className="relative aspect-[4/3] overflow-hidden">
-      {property.images && property.images[0] ? (
-        <img
-          src={property.images[0]}
-          alt={property.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-elegant"
-        />
-      ) : (
-        <div className="w-full h-full bg-secondary flex items-center justify-center">
-          <MapPin className="w-12 h-12 text-muted-foreground" />
+  <Link to={`/property/${property.id}`}>
+    <Card 
+      className="overflow-hidden bg-card border-border/50 hover:border-primary/30 transition-elegant hover-card-lift animate-fade-in cursor-pointer"
+      style={{ animationDelay: `${index * 50}ms` }}
+    >
+      <div className="relative aspect-[4/3] overflow-hidden">
+        {property.images && property.images[0] ? (
+          <img
+            src={property.images[0]}
+            alt={property.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-elegant"
+          />
+        ) : (
+          <div className="w-full h-full bg-secondary flex items-center justify-center">
+            <MapPin className="w-12 h-12 text-muted-foreground" />
+          </div>
+        )}
+        
+        {/* Save Button */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onSave();
+          }}
+          className="absolute top-3 right-3 p-2 rounded-full bg-background/80 hover:bg-background transition-fast"
+        >
+          <Heart className={`w-5 h-5 ${isSaved ? "fill-primary text-primary" : "text-foreground"}`} />
+        </button>
+
+        {/* Price Badge */}
+        <div className="absolute bottom-3 left-3 px-3 py-1.5 bg-primary text-primary-foreground text-sm font-semibold rounded-lg">
+          {formatPrice(property.price)}
         </div>
-      )}
-      
-      {/* Save Button */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onSave();
-        }}
-        className="absolute top-3 right-3 p-2 rounded-full bg-background/80 hover:bg-background transition-fast"
-      >
-        <Heart className={`w-5 h-5 ${isSaved ? "fill-primary text-primary" : "text-foreground"}`} />
-      </button>
-
-      {/* Price Badge */}
-      <div className="absolute bottom-3 left-3 px-3 py-1.5 bg-primary text-primary-foreground text-sm font-semibold rounded-lg">
-        {formatPrice(property.price)}
       </div>
-    </div>
 
-    <div className="p-4">
-      <h3 className="font-semibold text-foreground line-clamp-1">{property.title}</h3>
-      <p className="text-muted-foreground text-sm mt-1">
-        {property.city}, {property.country}
-      </p>
+      <div className="p-4">
+        <h3 className="font-semibold text-foreground line-clamp-1">{property.title}</h3>
+        <p className="text-muted-foreground text-sm mt-1">
+          {property.city}, {property.country}
+        </p>
 
-      <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-        {property.bedrooms !== null && (
-          <span className="flex items-center gap-1">
-            <BedDouble className="w-4 h-4" />
-            {property.bedrooms} beds
-          </span>
-        )}
-        {property.bathrooms !== null && (
-          <span className="flex items-center gap-1">
-            <Bath className="w-4 h-4" />
-            {property.bathrooms} baths
-          </span>
-        )}
-        {property.sqft !== null && (
-          <span className="flex items-center gap-1">
-            <Maximize className="w-4 h-4" />
-            {property.sqft.toLocaleString()} sqft
-          </span>
-        )}
+        <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+          {property.bedrooms !== null && (
+            <span className="flex items-center gap-1">
+              <BedDouble className="w-4 h-4" />
+              {property.bedrooms} beds
+            </span>
+          )}
+          {property.bathrooms !== null && (
+            <span className="flex items-center gap-1">
+              <Bath className="w-4 h-4" />
+              {property.bathrooms} baths
+            </span>
+          )}
+          {property.sqft !== null && (
+            <span className="flex items-center gap-1">
+              <Maximize className="w-4 h-4" />
+              {property.sqft.toLocaleString()} sqft
+            </span>
+          )}
+        </div>
       </div>
-    </div>
-  </Card>
+    </Card>
+  </Link>
 );
 
 export default Search;
