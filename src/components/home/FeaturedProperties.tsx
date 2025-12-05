@@ -8,9 +8,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { searchProperties, Property as IDXProperty } from "@/lib/integrations/realtycandy-idx";
 import penthouseImg from "@/assets/property-penthouse.jpg";
-import villaImg from "@/assets/property-villa.jpg";
-import estateImg from "@/assets/property-estate.jpg";
 
 interface Property {
   id: string;
@@ -24,15 +23,8 @@ interface Property {
   sqft: number | null;
   property_type: string | null;
   images: string[] | null;
+  source?: 'supabase' | 'idx';
 }
-
-// Map property types to generated images
-const propertyImages: Record<string, string> = {
-  penthouse: penthouseImg,
-  villa: villaImg,
-  house: estateImg,
-  condo: penthouseImg,
-};
 
 export const FeaturedProperties = () => {
   const { user } = useAuth();
@@ -42,20 +34,60 @@ export const FeaturedProperties = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchProperties();
+    fetchAllProperties();
     if (user) fetchSaved();
   }, [user]);
 
-  const fetchProperties = async () => {
-    const { data } = await supabase
-      .from("properties")
-      .select("id, title, description, price, city, country, bedrooms, bathrooms, sqft, property_type, images")
-      .eq("status", "active")
-      .order("price", { ascending: false })
-      .limit(6);
+  const fetchAllProperties = async () => {
+    try {
+      // Fetch from both sources in parallel
+      const [dubaiResult, atlantaResult] = await Promise.all([
+        // Dubai properties from Supabase
+        supabase
+          .from("properties")
+          .select("id, title, description, price, city, country, bedrooms, bathrooms, sqft, property_type, images")
+          .eq("status", "active")
+          .eq("city", "Dubai")
+          .order("price", { ascending: false })
+          .limit(3),
+        // Atlanta properties from IDX
+        searchProperties({ savedLinkId: '13759', limit: 3 })
+      ]);
 
-    if (data) setProperties(data);
-    setLoading(false);
+      const dubaiProperties: Property[] = (dubaiResult.data || []).map(p => ({
+        ...p,
+        source: 'supabase' as const
+      }));
+
+      const atlantaProperties: Property[] = atlantaResult.map((p: IDXProperty) => ({
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        price: p.price,
+        city: p.city,
+        country: p.country,
+        bedrooms: p.bedrooms,
+        bathrooms: p.bathrooms,
+        sqft: p.sqft,
+        property_type: p.propertyType,
+        images: p.images,
+        source: 'idx' as const
+      }));
+
+      // Combine and interleave properties (alternate between sources)
+      const combined: Property[] = [];
+      const maxLen = Math.max(dubaiProperties.length, atlantaProperties.length);
+      for (let i = 0; i < maxLen; i++) {
+        if (atlantaProperties[i]) combined.push(atlantaProperties[i]);
+        if (dubaiProperties[i]) combined.push(dubaiProperties[i]);
+      }
+
+      setProperties(combined.slice(0, 6));
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchSaved = async () => {
@@ -99,8 +131,18 @@ export const FeaturedProperties = () => {
   };
 
   const getImage = (property: Property) => {
-    // Use generated image based on property type, fallback to penthouse
-    return propertyImages[property.property_type || "house"] || penthouseImg;
+    // Use actual property images if available
+    if (property.images && property.images.length > 0 && property.images[0]) {
+      return property.images[0];
+    }
+    return penthouseImg;
+  };
+
+  const getPropertyLink = (property: Property) => {
+    if (property.source === 'idx') {
+      return `/property/idx-${property.id}`;
+    }
+    return `/property/${property.id}`;
   };
 
   if (loading) {
@@ -126,12 +168,12 @@ export const FeaturedProperties = () => {
         <ScrollReveal variant="fade-up">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
             <div>
-              <p className="text-eyebrow text-primary mb-2">IDX LISTINGS</p>
+              <p className="text-eyebrow text-primary mb-2">LIVE LISTINGS</p>
               <h2 className="font-serif text-3xl md:text-4xl font-bold mb-2">
                 Featured <span className="gradient-text-gold">Properties</span>
               </h2>
               <p className="text-muted-foreground">
-                Curated estates in Atlanta, Miami, Dubai & beyond
+                Luxury estates from Atlanta & Dubai markets
               </p>
             </div>
             <Link to="/search">
@@ -145,8 +187,8 @@ export const FeaturedProperties = () => {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {properties.map((property, index) => (
-            <ScrollReveal key={property.id} variant="fade-up" delay={index * 100}>
-              <Link to={`/property/${property.id}`}>
+            <ScrollReveal key={`${property.source}-${property.id}`} variant="fade-up" delay={index * 100}>
+              <Link to={getPropertyLink(property)}>
                 <Card 
                   className="group overflow-hidden bg-card border-border/50 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-gold cursor-pointer h-full"
                 >
@@ -155,16 +197,21 @@ export const FeaturedProperties = () => {
                       src={getImage(property)}
                       alt={property.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = penthouseImg;
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
                     
-                    {/* Save Button */}
-                    <button
-                      onClick={(e) => handleSave(property.id, e)}
-                      className="absolute top-3 right-3 p-2 rounded-full bg-background/80 hover:bg-background transition-fast z-10"
-                    >
-                      <Heart className={`w-5 h-5 ${savedProperties.has(property.id) ? "fill-primary text-primary" : "text-foreground"}`} />
-                    </button>
+                    {/* Save Button - only for Supabase properties */}
+                    {property.source === 'supabase' && (
+                      <button
+                        onClick={(e) => handleSave(property.id, e)}
+                        className="absolute top-3 right-3 p-2 rounded-full bg-background/80 hover:bg-background transition-fast z-10"
+                      >
+                        <Heart className={`w-5 h-5 ${savedProperties.has(property.id) ? "fill-primary text-primary" : "text-foreground"}`} />
+                      </button>
+                    )}
 
                     {/* Price Badge */}
                     <div className="absolute top-3 left-3">
