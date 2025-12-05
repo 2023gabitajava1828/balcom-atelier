@@ -236,14 +236,39 @@ async function scrapePropertyPage(url: string): Promise<PropertyData | null> {
       return null;
     }
 
-    // Extract description
-    const descMatch = markdown.match(/(?:Description|About|Overview)[:\s]*\n(.+(?:\n.+)*)/i);
-    let description = descMatch ? descMatch[1].trim() : '';
-    if (!description) {
-      // Take first paragraph from markdown lines
-      const lines = markdown.split('\n').filter((l: string) => l.trim());
-      description = lines.find((l: string) => l.length > 100) || `Luxury property in Dubai, UAE.`;
+    // Extract description - find clean prose, avoiding price/beds/baths concatenated text
+    let description = '';
+    
+    // Pattern 1: Look for Description/About/Overview section
+    const descMatch = markdown.match(/(?:Description|About|Overview|Details)[:\s]*\n(.+(?:\n.+)*)/i);
+    if (descMatch) {
+      description = descMatch[1].trim();
     }
+    
+    // Pattern 2: Find clean paragraph text (no price/beds symbols)
+    if (!description || description.includes('![AED]') || description.includes('Beds') && description.includes('Baths')) {
+      const lines = markdown.split('\n').filter((l: string) => l.trim() && l.length > 50);
+      const cleanLine = lines.find((l: string) => 
+        !l.includes('![') && 
+        !l.includes('AED') && 
+        !l.includes('Beds') && 
+        !l.includes('Baths') && 
+        !l.includes('SQ.FT') &&
+        !l.startsWith('[') &&
+        l.length > 80
+      );
+      if (cleanLine) {
+        description = cleanLine.trim();
+      }
+    }
+    
+    // Fallback to generated description
+    if (!description || description.includes('![') || description.length < 50) {
+      const areaName = address.split(',')[0] || 'Dubai';
+      const typeCapitalized = propertyType.charAt(0).toUpperCase() + propertyType.slice(1);
+      description = `Luxury ${typeCapitalized.toLowerCase()} in ${areaName}, Dubai. ${bedrooms ? `${bedrooms} bedrooms, ` : ''}${bathrooms ? `${bathrooms} bathrooms, ` : ''}${sqft ? `${sqft.toLocaleString()} sq ft of` : ''} premium living space in one of Dubai's most prestigious locations.`;
+    }
+    
     description = description.slice(0, 1000);
 
     // Extract images from HTML - Sotheby's uses S3 for images
