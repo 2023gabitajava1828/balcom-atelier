@@ -34,6 +34,8 @@ interface AthleteRequest {
   budget_max: number | null;
   status: string;
   priority: string;
+  athlete_approval: string;
+  athlete_notes: string | null;
   created_at: string;
   athletes?: {
     first_name: string;
@@ -41,6 +43,12 @@ interface AthleteRequest {
     sport: string;
   };
 }
+
+const approvalConfig = {
+  pending: { label: "Awaiting Athlete", className: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
+  approved: { label: "Athlete Approved", className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
+  rejected: { label: "Athlete Rejected", className: "bg-red-500/10 text-red-600 border-red-500/20" }
+};
 
 const statusConfig = {
   submitted: { label: "Submitted", icon: Clock, className: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
@@ -170,6 +178,11 @@ const AgentActivityDashboard = () => {
                             <Badge variant="outline" className={status.className}>
                               {status.label}
                             </Badge>
+                            {request.athlete_approval && (
+                              <Badge variant="outline" className={approvalConfig[request.athlete_approval as keyof typeof approvalConfig]?.className}>
+                                {approvalConfig[request.athlete_approval as keyof typeof approvalConfig]?.label}
+                              </Badge>
+                            )}
                             <Badge variant="outline" className={priority.className}>
                               {priority.label}
                             </Badge>
