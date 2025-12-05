@@ -2,7 +2,6 @@ import { Navigation } from "@/components/layout/Navigation";
 import { Footer } from "@/components/layout/Footer";
 import { BottomTabs } from "@/components/layout/BottomTabs";
 import { Hero } from "@/components/home/Hero";
-import { QuickActions } from "@/components/home/QuickActions";
 import { FeaturedProperties } from "@/components/home/FeaturedProperties";
 import { FeaturedLuxury } from "@/components/home/FeaturedLuxury";
 import { FeaturedAuctions } from "@/components/home/FeaturedAuctions";
@@ -15,7 +14,6 @@ const Index = () => {
       <Navigation />
       <main className="pb-20 md:pb-0">
         <Hero />
-        <QuickActions />
         <FeaturedProperties />
         <FeaturedLuxury />
         <FeaturedAuctions />
