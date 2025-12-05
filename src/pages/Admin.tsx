@@ -1,7 +1,7 @@
 import { Navigation } from "@/components/layout/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Shield, Users, Calendar, FileText, Settings, Home } from "lucide-react";
+import { Shield, Users, Calendar, FileText, Settings, Home, RefreshCw, Loader2 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
@@ -9,8 +9,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ConciergeRequestsManager } from "@/components/admin/ConciergeRequestsManager";
+import { useToast } from "@/hooks/use-toast";
 
 const Admin = () => {
+  const { toast } = useToast();
   const [stats, setStats] = useState({
     members: 0,
     requests: 0,
@@ -18,10 +20,14 @@ const Admin = () => {
     properties: 0,
   });
   const [events, setEvents] = useState<any[]>([]);
+  const [dubaiProperties, setDubaiProperties] = useState<any[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSync, setLastSync] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStats();
     fetchEvents();
+    fetchDubaiProperties();
   }, []);
 
   const fetchStats = async () => {
@@ -48,6 +54,46 @@ const Admin = () => {
       .limit(10);
 
     if (data) setEvents(data);
+  };
+
+  const fetchDubaiProperties = async () => {
+    const { data } = await supabase
+      .from("properties")
+      .select("*")
+      .eq("city", "Dubai")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (data) setDubaiProperties(data);
+  };
+
+  const handleSyncDubaiProperties = async () => {
+    setIsSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('scrape-sothebys-dubai', {
+        body: { action: 'sync' }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Dubai Properties Synced",
+        description: `Scraped ${data.scraped} properties. Inserted: ${data.inserted}, Updated: ${data.updated}`,
+      });
+
+      setLastSync(new Date().toISOString());
+      fetchDubaiProperties();
+      fetchStats();
+    } catch (error: any) {
+      console.error('Sync error:', error);
+      toast({
+        title: "Sync Failed",
+        description: error.message || "Failed to sync Dubai properties",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   return (
@@ -92,13 +138,82 @@ const Admin = () => {
 
               {/* Management Tabs */}
               <Tabs defaultValue="requests" className="max-w-6xl mx-auto">
-                <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-2 mb-8">
+                <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-3 mb-8">
                   <TabsTrigger value="requests">Concierge Requests</TabsTrigger>
+                  <TabsTrigger value="properties">Properties</TabsTrigger>
                   <TabsTrigger value="events">Events</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="requests">
                   <ConciergeRequestsManager />
+                </TabsContent>
+
+                <TabsContent value="properties">
+                  <Card className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h2 className="font-serif text-2xl font-bold">Dubai Properties</h2>
+                        <p className="text-sm text-foreground/60 mt-1">
+                          Sync properties from sothebysrealty.ae
+                          {lastSync && ` • Last synced: ${format(new Date(lastSync), "PPp")}`}
+                        </p>
+                      </div>
+                      <Button 
+                        onClick={handleSyncDubaiProperties} 
+                        disabled={isSyncing}
+                        variant="hero"
+                      >
+                        {isSyncing ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Syncing...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Sync Dubai Properties
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    
+                    <div className="grid gap-4">
+                      {dubaiProperties.length === 0 ? (
+                        <div className="text-center py-12 text-foreground/60">
+                          <Home className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                          <p>No Dubai properties yet. Click "Sync Dubai Properties" to import from Sotheby's.</p>
+                        </div>
+                      ) : (
+                        dubaiProperties.map((property) => (
+                          <Card key={property.id} className="p-4">
+                            <div className="flex items-start gap-4">
+                              {property.images?.[0] && (
+                                <img 
+                                  src={property.images[0]} 
+                                  alt={property.title}
+                                  className="w-24 h-24 object-cover rounded-lg"
+                                />
+                              )}
+                              <div className="flex-1">
+                                <h3 className="font-semibold mb-1">{property.title}</h3>
+                                <p className="text-sm text-foreground/70 line-clamp-2 mb-2">
+                                  {property.description}
+                                </p>
+                                <div className="flex items-center gap-4 text-xs text-foreground/60">
+                                  <Badge variant="secondary">
+                                    ${property.price?.toLocaleString()}
+                                  </Badge>
+                                  {property.bedrooms && <span>{property.bedrooms} beds</span>}
+                                  {property.bathrooms && <span>{property.bathrooms} baths</span>}
+                                  {property.sqft && <span>{property.sqft.toLocaleString()} sqft</span>}
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+                  </Card>
                 </TabsContent>
 
                 <TabsContent value="events">
