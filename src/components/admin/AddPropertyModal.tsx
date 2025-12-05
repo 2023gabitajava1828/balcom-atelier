@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Loader2, X } from "lucide-react";
+import { Plus, Loader2, X, Upload, Image } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,6 +20,8 @@ export const AddPropertyModal = ({ onSuccess }: AddPropertyModalProps) => {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
     title: "",
@@ -35,7 +37,8 @@ export const AddPropertyModal = ({ onSuccess }: AddPropertyModalProps) => {
     region: "Middle East",
   });
   
-  const [images, setImages] = useState<string[]>([""]);
+  const [images, setImages] = useState<string[]>([]);
+  const [imageUrl, setImageUrl] = useState("");
   const [features, setFeatures] = useState<string[]>([""]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
@@ -43,19 +46,79 @@ export const AddPropertyModal = ({ onSuccess }: AddPropertyModalProps) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleImageChange = (index: number, value: string) => {
-    const newImages = [...images];
-    newImages[index] = value;
-    setImages(newImages);
-  };
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-  const addImageField = () => {
-    if (images.length < 10) {
-      setImages([...images, ""]);
+    setIsUploading(true);
+    const uploadedUrls: string[] = [];
+
+    try {
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith("image/")) {
+          toast({
+            title: "Invalid file type",
+            description: `${file.name} is not an image`,
+            variant: "destructive",
+          });
+          continue;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          toast({
+            title: "File too large",
+            description: `${file.name} exceeds 5MB limit`,
+            variant: "destructive",
+          });
+          continue;
+        }
+
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("property-images")
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("property-images")
+          .getPublicUrl(fileName);
+
+        uploadedUrls.push(urlData.publicUrl);
+      }
+
+      if (uploadedUrls.length > 0) {
+        setImages(prev => [...prev, ...uploadedUrls]);
+        toast({
+          title: "Images uploaded",
+          description: `${uploadedUrls.length} image(s) uploaded successfully`,
+        });
+      }
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload images",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
-  const removeImageField = (index: number) => {
+  const addImageUrl = () => {
+    if (imageUrl.trim()) {
+      setImages(prev => [...prev, imageUrl.trim()]);
+      setImageUrl("");
+    }
+  };
+
+  const removeImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
   };
 
@@ -95,7 +158,8 @@ export const AddPropertyModal = ({ onSuccess }: AddPropertyModalProps) => {
       country: "UAE",
       region: "Middle East",
     });
-    setImages([""]);
+    setImages([]);
+    setImageUrl("");
     setFeatures([""]);
     setSelectedTags([]);
   };
@@ -127,7 +191,7 @@ export const AddPropertyModal = ({ onSuccess }: AddPropertyModalProps) => {
         city: formData.city,
         country: formData.country,
         region: formData.region,
-        images: images.filter(img => img.trim()),
+        images: images,
         features: features.filter(f => f.trim()),
         lifestyle_tags: selectedTags,
         status: "active",
@@ -320,34 +384,81 @@ export const AddPropertyModal = ({ onSuccess }: AddPropertyModalProps) => {
           </div>
 
           {/* Images */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <Label>Image URLs</Label>
-              <Button type="button" variant="ghost" size="sm" onClick={addImageField}>
-                <Plus className="w-4 h-4 mr-1" /> Add Image
+          <div className="space-y-4">
+            <Label>Property Images</Label>
+            
+            {/* File Upload */}
+            <div className="border-2 border-dashed border-border rounded-lg p-4">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileUpload}
+                className="hidden"
+                id="property-image-upload"
+              />
+              <label
+                htmlFor="property-image-upload"
+                className="flex flex-col items-center justify-center cursor-pointer"
+              >
+                {isUploading ? (
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                ) : (
+                  <Upload className="w-8 h-8 text-muted-foreground" />
+                )}
+                <span className="mt-2 text-sm text-muted-foreground">
+                  {isUploading ? "Uploading..." : "Click to upload images (max 5MB each)"}
+                </span>
+              </label>
+            </div>
+
+            {/* URL Input */}
+            <div className="flex gap-2">
+              <Input
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="Or paste image URL..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addImageUrl();
+                  }
+                }}
+              />
+              <Button type="button" variant="outline" onClick={addImageUrl}>
+                <Plus className="w-4 h-4" />
               </Button>
             </div>
-            <div className="space-y-2">
-              {images.map((img, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    value={img}
-                    onChange={(e) => handleImageChange(index, e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                  />
-                  {images.length > 1 && (
-                    <Button
+
+            {/* Image Preview Grid */}
+            {images.length > 0 && (
+              <div className="grid grid-cols-4 gap-2">
+                {images.map((img, index) => (
+                  <div key={index} className="relative group aspect-square">
+                    <img
+                      src={img}
+                      alt={`Property ${index + 1}`}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                    <button
                       type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeImageField(index)}
+                      onClick={() => removeImage(index)}
+                      className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {images.length === 0 && (
+              <div className="flex items-center justify-center py-4 text-sm text-muted-foreground">
+                <Image className="w-4 h-4 mr-2" />
+                No images added yet
+              </div>
+            )}
           </div>
 
           {/* Features */}
@@ -386,7 +497,7 @@ export const AddPropertyModal = ({ onSuccess }: AddPropertyModalProps) => {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" variant="hero" disabled={isSubmitting}>
+            <Button type="submit" variant="hero" disabled={isSubmitting || isUploading}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
