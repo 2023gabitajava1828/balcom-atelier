@@ -28,6 +28,7 @@ const Admin = () => {
   const [isSyncingChristies, setIsSyncingChristies] = useState(false);
   const [isSyncingBayut, setIsSyncingBayut] = useState(false);
   const [isSyncingSothebysItems, setIsSyncingSothebysItems] = useState(false);
+  const [isSyncingWithDetails, setIsSyncingWithDetails] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
 
   useEffect(() => {
@@ -174,18 +175,30 @@ const Admin = () => {
     }
   };
 
-  const handleSyncSothebysItems = async () => {
-    setIsSyncingSothebysItems(true);
+  const handleSyncSothebysItems = async (withDetails: boolean = false) => {
+    if (withDetails) {
+      setIsSyncingWithDetails(true);
+    } else {
+      setIsSyncingSothebysItems(true);
+    }
     try {
       const { data, error } = await supabase.functions.invoke('scrape-sothebys-items', {
-        body: { action: 'sync' }
+        body: { 
+          action: 'sync',
+          fetchDetails: withDetails,
+          limit: withDetails ? 20 : 0 // Limit when fetching details to avoid timeout
+        }
       });
 
       if (error) throw error;
 
+      const detailsMsg = withDetails && data.detailsFetched 
+        ? ` Details fetched: ${data.detailsFetched}.`
+        : '';
+      
       toast({
         title: "Sotheby's Items Synced",
-        description: `Scraped ${data.categoriesScraped} categories. Found ${data.itemsFound} items. Inserted: ${data.inserted}, Updated: ${data.updated}`,
+        description: `Scraped ${data.categoriesScraped} categories. Found ${data.itemsFound} items. Inserted: ${data.inserted}, Updated: ${data.updated}.${detailsMsg}`,
       });
 
       setLastSync(new Date().toISOString());
@@ -200,6 +213,7 @@ const Admin = () => {
       });
     } finally {
       setIsSyncingSothebysItems(false);
+      setIsSyncingWithDetails(false);
     }
   };
 
@@ -378,24 +392,44 @@ const Admin = () => {
                           Curated items from Sotheby's Buy Now catalog
                         </p>
                       </div>
-                      <Button 
-                        onClick={handleSyncSothebysItems} 
-                        disabled={isSyncingSothebysItems}
-                        variant="hero"
-                        size="sm"
-                      >
-                        {isSyncingSothebysItems ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Syncing...
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className="w-4 h-4 mr-2" />
-                            Sync Sotheby's
-                          </>
-                        )}
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={() => handleSyncSothebysItems(false)} 
+                          disabled={isSyncingSothebysItems || isSyncingWithDetails}
+                          variant="hero"
+                          size="sm"
+                        >
+                          {isSyncingSothebysItems ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Syncing...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2" />
+                              Quick Sync
+                            </>
+                          )}
+                        </Button>
+                        <Button 
+                          onClick={() => handleSyncSothebysItems(true)} 
+                          disabled={isSyncingSothebysItems || isSyncingWithDetails}
+                          variant="outline"
+                          size="sm"
+                        >
+                          {isSyncingWithDetails ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Fetching Details...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2" />
+                              Sync + Details
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     </div>
                     
                     <div className="grid gap-4">
