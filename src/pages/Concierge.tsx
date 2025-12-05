@@ -111,10 +111,10 @@ const Concierge = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="pt-20 pb-20 md:pb-0">
+      <main className="page-main-compact">
         {/* Hero Section */}
-        <section className="py-16 md:py-24 bg-gradient-to-b from-background to-card/30">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="section-hero bg-gradient-to-b from-background to-card/30">
+          <div className="content-container">
             <div className="text-center mb-12">
               <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
                 Available 24/7
@@ -150,8 +150,8 @@ const Concierge = () => {
         </section>
 
         {/* Service Showcase */}
-        <section className="py-16 md:py-24 bg-card/30">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="section bg-card/30">
+          <div className="content-container">
             <div className="text-center mb-12">
               <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4 text-foreground">
                 What We <span className="gradient-text-gold">Handle</span>
@@ -201,8 +201,8 @@ const Concierge = () => {
         </section>
 
         {/* Success Stories */}
-        <section className="py-16 md:py-24">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="section">
+          <div className="content-container">
             <div className="text-center mb-12">
               <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4 text-foreground">
                 Member <span className="gradient-text-gold">Stories</span>
@@ -236,8 +236,8 @@ const Concierge = () => {
         </section>
 
         {/* Request Section */}
-        <section className="py-16 md:py-24 bg-card/30">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="section bg-card/30">
+          <div className="content-container">
             {user ? (
               <Tabs defaultValue="new" className="max-w-6xl mx-auto">
                 <div className="text-center mb-8">

@@ -95,6 +95,11 @@ export default {
         '18': '4.5rem',
         '88': '22rem',
         '128': '32rem',
+        // Consistent section spacing
+        'section-sm': '2rem',
+        'section': '3rem',
+        'section-lg': '4rem',
+        'section-xl': '6rem',
       },
       maxWidth: {
         'content': '520px',

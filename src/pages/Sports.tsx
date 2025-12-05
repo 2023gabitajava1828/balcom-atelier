@@ -122,7 +122,7 @@ const Sports = () => {
     return (
       <div className="min-h-screen bg-background pb-20 md:pb-0">
         <Navigation />
-        <main className="container mx-auto px-4 pt-24 pb-6 max-w-7xl">
+        <main className="page-main content-wide">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
@@ -146,7 +146,7 @@ const Sports = () => {
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navigation />
       
-      <main className="container mx-auto px-4 pt-24 pb-6 max-w-7xl">
+      <main className="page-main content-wide">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>

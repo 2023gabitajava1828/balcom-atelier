@@ -206,8 +206,8 @@ const Account = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="pt-20 pb-24 md:pb-8">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl py-8">
+      <main className="page-main">
+        <div className="content-narrow section-sm">
           {/* Profile Header */}
           <Card className="p-6 md:p-8 mb-8">
             <div className="flex flex-col md:flex-row items-start gap-6">

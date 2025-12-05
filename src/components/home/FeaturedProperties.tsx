@@ -105,8 +105,8 @@ export const FeaturedProperties = () => {
 
   if (loading) {
     return (
-      <section className="py-16 md:py-24">
-        <div className="container mx-auto px-4">
+      <section className="section">
+        <div className="content-container">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-muted rounded w-1/3"></div>
             <div className="grid md:grid-cols-3 gap-6">
@@ -121,8 +121,8 @@ export const FeaturedProperties = () => {
   }
 
   return (
-    <section className="py-16 md:py-24">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="section">
+      <div className="content-container">
         <ScrollReveal variant="fade-up">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
             <div>

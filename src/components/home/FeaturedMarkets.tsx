@@ -51,8 +51,8 @@ const markets = [
 
 export const FeaturedMarkets = () => {
   return (
-    <section className="py-16 md:py-24 bg-card/30">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="section bg-card/30">
+      <div className="content-container">
         <ScrollReveal variant="fade-up">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
             <div>

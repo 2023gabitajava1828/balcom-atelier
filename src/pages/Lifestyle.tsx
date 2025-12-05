@@ -98,11 +98,11 @@ const Lifestyle = () => {
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navigation />
 
-      <main className="pt-20 md:pt-24">
+      <main className="page-main-compact">
         {/* Hero Section */}
-        <section className="relative py-16 md:py-24 overflow-hidden">
+        <section className="section-hero relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="content-container relative">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
                 Curated <span className="gradient-text-gold">Lifestyle</span>
@@ -115,7 +115,7 @@ const Lifestyle = () => {
         </section>
 
         {/* Main Content */}
-        <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <section className="section content-container">
           <Tabs defaultValue="shopping" className="w-full">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
               <TabsList className="bg-card/50 border border-border/50 p-1 w-fit">
@@ -219,7 +219,7 @@ const Lifestyle = () => {
         </section>
 
         {/* Concierge CTA */}
-        <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <section className="section-sm content-container">
           <Card className="p-8 md:p-12 bg-gradient-to-br from-card to-card/80 border-primary/20">
             <div className="max-w-2xl mx-auto text-center">
               <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
