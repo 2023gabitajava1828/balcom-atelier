@@ -23,6 +23,7 @@ const Admin = () => {
   const [dubaiProperties, setDubaiProperties] = useState<any[]>([]);
   const [isSyncingSothebys, setIsSyncingSothebys] = useState(false);
   const [isSyncingChristies, setIsSyncingChristies] = useState(false);
+  const [isSyncingBayut, setIsSyncingBayut] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
 
   useEffect(() => {
@@ -126,6 +127,35 @@ const Admin = () => {
     }
   };
 
+  const handleSyncBayut = async () => {
+    setIsSyncingBayut(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('scrape-bayut-dubai', {
+        body: { action: 'sync' }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Bayut Dubai Synced",
+        description: `Found ${data.urlsFound} URLs, scraped ${data.propertiesScraped} properties. Inserted: ${data.inserted}, Updated: ${data.updated}`,
+      });
+
+      setLastSync(new Date().toISOString());
+      fetchDubaiProperties();
+      fetchStats();
+    } catch (error: any) {
+      console.error('Sync error:', error);
+      toast({
+        title: "Sync Failed",
+        description: error.message || "Failed to sync Bayut properties",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncingBayut(false);
+    }
+  };
+
   return (
     <AdminGuard>
       <div className="min-h-screen bg-background">
@@ -191,7 +221,7 @@ const Admin = () => {
                       <div className="flex gap-2">
                         <Button 
                           onClick={handleSyncSothebys} 
-                          disabled={isSyncingSothebys || isSyncingChristies}
+                          disabled={isSyncingSothebys || isSyncingChristies || isSyncingBayut}
                           variant="hero"
                           size="sm"
                         >
@@ -209,7 +239,7 @@ const Admin = () => {
                         </Button>
                         <Button 
                           onClick={handleSyncChristies} 
-                          disabled={isSyncingSothebys || isSyncingChristies}
+                          disabled={isSyncingSothebys || isSyncingChristies || isSyncingBayut}
                           variant="outline"
                           size="sm"
                         >
@@ -222,6 +252,24 @@ const Admin = () => {
                             <>
                               <RefreshCw className="w-4 h-4 mr-2" />
                               Christie's
+                            </>
+                          )}
+                        </Button>
+                        <Button 
+                          onClick={handleSyncBayut} 
+                          disabled={isSyncingSothebys || isSyncingChristies || isSyncingBayut}
+                          variant="outline"
+                          size="sm"
+                        >
+                          {isSyncingBayut ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Syncing...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2" />
+                              Bayut
                             </>
                           )}
                         </Button>

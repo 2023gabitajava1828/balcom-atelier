@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.scrape-christies-dubai]
 verify_jwt = false
+
+[functions.scrape-bayut-dubai]
+verify_jwt = false
