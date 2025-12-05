@@ -200,10 +200,31 @@ function processResponse(data: unknown, corsHeaders: Record<string, string>) {
     }
   }
   
-  console.log('[IDX] Processing', listings.length, 'listings');
+  console.log('[IDX] Processing', listings.length, 'raw listings');
+
+  // Status values that indicate SOLD or inactive listings - filter these OUT
+  const soldStatuses = ['sold', 'closed', 'pending', 'expired', 'withdrawn', 'cancelled', 'off market'];
+  
+  // Filter to only active/available listings (exclude sold, pending, etc.)
+  const activeListings = listings.filter((listing) => {
+    const status = String(listing.propStatus || listing.status || listing.listingStatus || '').toLowerCase();
+    const isSold = soldStatuses.some(s => status.includes(s));
+    
+    // Also check for sold price indicators
+    const hasSoldPrice = listing.soldPrice && parseFloat(String(listing.soldPrice)) > 0;
+    const hasSoldDate = listing.soldDate || listing.closeDate;
+    
+    if (isSold || hasSoldPrice || hasSoldDate) {
+      console.log('[IDX] Filtering out sold/inactive listing:', listing.listingID, 'status:', status);
+      return false;
+    }
+    return true;
+  });
+
+  console.log('[IDX] Active listings after filtering:', activeListings.length);
 
   // Map IDX Broker response - EXCLUDE broker/agent info
-  const properties = listings.map((listing) => ({
+  const properties = activeListings.map((listing) => ({
     id: String(listing.listingID || listing.mlsID || listing.idxID || crypto.randomUUID()),
     title: buildTitle(listing),
     description: cleanDescription(String(listing.remarksConcat || listing.remarks || listing.description || '')),
@@ -221,14 +242,17 @@ function processResponse(data: unknown, corsHeaders: Record<string, string>) {
     lifestyleTags: extractLifestyleTags(listing),
     images: extractAllImages(listing),
     features: extractFeatures(listing),
-    status: 'active',
+    status: String(listing.propStatus || listing.status || 'active').toLowerCase(),
     mlsNumber: String(listing.listingID || listing.mlsID || ''),
     yearBuilt: parseInt(String(listing.yearBuilt || 0)) || null,
     lotSize: String(listing.acres || listing.lotSize || ''),
     // Explicitly NOT including: listingAgentID, listingOfficeID, agentName, officeName, etc.
   }));
 
-  console.log('[IDX] Mapped', properties.length, 'properties');
+  // Sort by price descending (most expensive first)
+  properties.sort((a, b) => b.price - a.price);
+
+  console.log('[IDX] Final properties:', properties.length, '(sorted by price high to low)');
 
   return new Response(
     JSON.stringify({ properties, total: properties.length }),
