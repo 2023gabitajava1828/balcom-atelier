@@ -6,9 +6,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PropertyCard } from "@/components/properties/PropertyCard";
 import { PropertyFilters, PropertySearchFilters } from "@/components/properties/PropertyFilters";
-import { ArrowLeft, MapPin, TrendingUp, Building2, Award } from "lucide-react";
+import { ArrowLeft, MapPin, TrendingUp, Building2, Award, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { searchProperties } from "@/lib/integrations/realtycandy-idx";
 import atlantaImg from "@/assets/market-atlanta.jpg";
 import miamiImg from "@/assets/market-miami.jpg";
 import dubaiImg from "@/assets/market-dubai.jpg";
@@ -25,7 +26,8 @@ const cityData = {
       "Midtown's cultural district and modern architecture", 
       "Historic neighborhoods with Southern charm",
       "Proximity to Fortune 500 headquarters"
-    ]
+    ],
+    isIdx: true
   },
   miami: {
     name: "Miami",
@@ -38,7 +40,8 @@ const cityData = {
       "South Beach's iconic Art Deco and beachfront access",
       "Coral Gables' Mediterranean elegance",
       "Year-round tropical lifestyle and culture"
-    ]
+    ],
+    isIdx: false
   },
   dubai: {
     name: "Dubai",
@@ -51,7 +54,8 @@ const cityData = {
       "Dubai Marina's stunning waterfront skyline",
       "Downtown Dubai with Burj Khalifa proximity",
       "Tax-free investment opportunities"
-    ]
+    ],
+    isIdx: false
   }
 };
 
@@ -59,6 +63,7 @@ const CityMarket = () => {
   const { city } = useParams<{ city: string }>();
   const [properties, setProperties] = useState<any[]>([]);
   const [savedProperties, setSavedProperties] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<PropertySearchFilters>({
     search: "",
     city: "",
@@ -77,27 +82,68 @@ const CityMarket = () => {
   }, [city, filters]);
 
   const fetchProperties = async () => {
-    let query = supabase
-      .from("properties")
-      .select("*")
-      .eq("status", "active")
-      .eq("city", cityInfo?.name || "");
+    setLoading(true);
+    
+    try {
+      if (cityInfo?.isIdx) {
+        // Fetch from IDX for Atlanta
+        const idxProperties = await searchProperties({
+          savedLinkId: "13759",
+          limit: 50,
+          priceMin: filters.minPrice ? parseInt(filters.minPrice) : undefined,
+          priceMax: filters.maxPrice ? parseInt(filters.maxPrice) : undefined,
+          beds: filters.bedrooms && filters.bedrooms !== "all" ? parseInt(filters.bedrooms) : undefined,
+          propertyType: filters.propertyType && filters.propertyType !== "all" ? filters.propertyType : undefined,
+        });
+        
+        // Transform IDX properties to match PropertyCard expected format
+        const transformedProperties = idxProperties.map(p => ({
+          id: p.id,
+          title: p.title,
+          description: p.description,
+          price: p.price,
+          city: p.city,
+          country: p.country || 'USA',
+          bedrooms: p.bedrooms,
+          bathrooms: p.bathrooms,
+          sqft: p.sqft,
+          property_type: p.propertyType,
+          images: p.images,
+          lifestyle_tags: p.lifestyleTags,
+          isIdx: true,
+        }));
+        
+        setProperties(transformedProperties);
+      } else {
+        // Fetch from Supabase for other markets
+        let query = supabase
+          .from("properties")
+          .select("*")
+          .eq("status", "active")
+          .eq("city", cityInfo?.name || "");
 
-    if (filters.minPrice) {
-      query = query.gte("price", parseFloat(filters.minPrice));
-    }
-    if (filters.maxPrice) {
-      query = query.lte("price", parseFloat(filters.maxPrice));
-    }
-    if (filters.propertyType && filters.propertyType !== "all") {
-      query = query.eq("property_type", filters.propertyType);
-    }
-    if (filters.bedrooms && filters.bedrooms !== "all") {
-      query = query.gte("bedrooms", parseInt(filters.bedrooms));
-    }
+        if (filters.minPrice) {
+          query = query.gte("price", parseFloat(filters.minPrice));
+        }
+        if (filters.maxPrice) {
+          query = query.lte("price", parseFloat(filters.maxPrice));
+        }
+        if (filters.propertyType && filters.propertyType !== "all") {
+          query = query.eq("property_type", filters.propertyType);
+        }
+        if (filters.bedrooms && filters.bedrooms !== "all") {
+          query = query.gte("bedrooms", parseInt(filters.bedrooms));
+        }
 
-    const { data } = await query.order("created_at", { ascending: false });
-    setProperties(data || []);
+        const { data } = await query.order("price", { ascending: false });
+        setProperties(data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+      setProperties([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSave = async (propertyId: string) => {
@@ -129,9 +175,16 @@ const CityMarket = () => {
             </Button>
           </Link>
           
-          <h1 className="font-serif text-5xl md:text-6xl font-bold mb-4 text-white">
-            {cityInfo.name}
-          </h1>
+          <div className="flex items-center gap-3 mb-4">
+            <h1 className="font-serif text-5xl md:text-6xl font-bold text-white">
+              {cityInfo.name}
+            </h1>
+            {cityInfo.isIdx && (
+              <Badge className="bg-success/20 text-success border-success/30">
+                Live Feed
+              </Badge>
+            )}
+          </div>
           <p className="text-xl md:text-2xl text-white/90 mb-6 max-w-3xl">
             {cityInfo.tagline}
           </p>
@@ -188,14 +241,18 @@ const CityMarket = () => {
                 Available Properties
               </h2>
               <p className="text-foreground/70">
-                {properties.length} exclusive {properties.length === 1 ? 'property' : 'properties'} in {cityInfo.name}
+                {loading ? "Loading..." : `${properties.length} exclusive ${properties.length === 1 ? 'property' : 'properties'} in ${cityInfo.name}`}
               </p>
             </div>
           </div>
 
           <PropertyFilters onSearch={setFilters} />
 
-          {properties.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : properties.length === 0 ? (
             <Card className="p-12 text-center">
               <Building2 className="w-12 h-12 mx-auto mb-4 text-primary/50" />
               <h3 className="font-semibold text-lg mb-2">No Properties Found</h3>
@@ -216,12 +273,16 @@ const CityMarket = () => {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {properties.map((property) => (
-                <PropertyCard 
+                <Link 
                   key={property.id} 
-                  property={property}
-                  onSave={handleSave}
-                  isSaved={savedProperties.has(property.id)}
-                />
+                  to={property.isIdx ? `/property/idx-${property.id}` : `/property/${property.id}`}
+                >
+                  <PropertyCard 
+                    property={property}
+                    onSave={handleSave}
+                    isSaved={savedProperties.has(property.id)}
+                  />
+                </Link>
               ))}
             </div>
           )}
