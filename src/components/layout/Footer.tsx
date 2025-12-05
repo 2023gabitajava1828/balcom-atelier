@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
-import sothebysLogo from "@/assets/sothebys-logo.jpg";
 
 interface FooterProps {
   className?: string;
@@ -99,12 +98,7 @@ export const Footer = ({ className }: FooterProps) => {
 
       {/* Sotheby's Brand Bar */}
       <div className="bg-background border-t border-border/50 py-6">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4">
-          <img 
-            src={sothebysLogo} 
-            alt="Sotheby's International Realty" 
-            className="h-8 w-auto object-contain opacity-70 brightness-0 invert"
-          />
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-xs text-muted-foreground/70">
             Each office is independently owned and operated. Sotheby's International Realty® is a registered trademark licensed to Sotheby's International Realty Affiliates LLC.
           </p>
