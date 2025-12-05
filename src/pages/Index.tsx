@@ -7,6 +7,7 @@ import { FeaturedProperties } from "@/components/home/FeaturedProperties";
 import { FeaturedLuxury } from "@/components/home/FeaturedLuxury";
 import { FeaturedAuctions } from "@/components/home/FeaturedAuctions";
 import { FeaturedMarkets } from "@/components/home/FeaturedMarkets";
+import { PerfectLiveChat } from "@/components/concierge/PerfectLiveChat";
 
 const Index = () => {
   return (
@@ -22,6 +23,9 @@ const Index = () => {
       </main>
       <Footer className="hidden md:block" />
       <BottomTabs />
+      
+      {/* PerfectLive 24/7 Chat for Gold+ members */}
+      <PerfectLiveChat />
     </div>
   );
 };
