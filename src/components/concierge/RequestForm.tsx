@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Loader2, Lock, Crown, Sparkles, Diamond } from "lucide-react";
+import { CalendarIcon, Loader2, Lock, Crown, Sparkles, Diamond, Plane, UtensilsCrossed, Car, Ticket, Home, Heart, Sparkle } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,8 @@ import { useMembership, MembershipTier, TIER_LABELS } from "@/hooks/useMembershi
 interface Category {
   value: string;
   label: string;
+  icon: React.ElementType;
+  headline: string;
   description: string;
   minTier: MembershipTier;
 }
@@ -26,44 +28,58 @@ interface Category {
 const categories: Category[] = [
   { 
     value: "travel", 
-    label: "Travel & Transportation", 
-    description: "Airport transfers, private jets, luxury car rentals",
+    label: "Travel",
+    icon: Plane,
+    headline: "Seamless Travel Arrangements",
+    description: "Private jets, first-class bookings, airport transfers, and custom itineraries",
     minTier: "silver" 
   },
   { 
     value: "dining", 
-    label: "Fine Dining & Reservations", 
-    description: "Michelin restaurants, private chefs, wine tastings",
+    label: "Dining",
+    icon: UtensilsCrossed,
+    headline: "Exclusive Culinary Experiences", 
+    description: "Michelin reservations, private chefs, chef's tables, and wine tastings",
+    minTier: "silver" 
+  },
+  { 
+    value: "chauffeur", 
+    label: "Chauffeur",
+    icon: Car,
+    headline: "Premium Ground Transportation",
+    description: "24/7 luxury vehicles, professional chauffeurs, airport meet & greet",
     minTier: "silver" 
   },
   { 
     value: "events", 
-    label: "Event Planning & Access", 
-    description: "VIP access, private events, exclusive tickets",
+    label: "Events & Tickets",
+    icon: Ticket,
+    headline: "VIP Access & Exclusive Events", 
+    description: "Courtside seats, concert VIP, fashion week, art fairs, and galas",
     minTier: "gold" 
   },
   { 
-    value: "shopping", 
-    label: "Personal Shopping", 
-    description: "Luxury goods, private showings, style curation",
+    value: "housing", 
+    label: "Housing / Relocation",
+    icon: Home,
+    headline: "Luxury Real Estate & Relocation",
+    description: "Property sourcing, off-market listings, furnished rentals, move coordination",
     minTier: "gold" 
   },
   { 
-    value: "lifestyle", 
-    label: "Lifestyle Services", 
-    description: "Property management, household staff, wellness",
-    minTier: "platinum" 
-  },
-  { 
-    value: "investment", 
-    label: "Investment Advisory", 
-    description: "Off-market properties, wealth management intros",
+    value: "wellness", 
+    label: "Wellness",
+    icon: Heart,
+    headline: "Health & Wellness Concierge",
+    description: "Luxury spa, personal trainers, in-home massage, wellness retreats",
     minTier: "platinum" 
   },
   { 
     value: "other", 
-    label: "Other Request", 
-    description: "Any special request not listed above",
+    label: "Other",
+    icon: Sparkle,
+    headline: "Bespoke Requests",
+    description: "Personalized gifts, hard-to-find items, special occasions, anything else",
     minTier: "silver" 
   },
 ];
@@ -89,6 +105,8 @@ export const RequestForm = () => {
     budget_min: "",
     budget_max: "",
   });
+
+  const selectedCategory = categories.find(c => c.value === formData.category);
 
   const handleCategorySelect = (value: string) => {
     const category = categories.find(c => c.value === value);
@@ -176,62 +194,71 @@ export const RequestForm = () => {
   };
 
   return (
-    <Card className="p-8 max-w-2xl mx-auto">
+    <Card className="p-6 md:p-8 max-w-2xl mx-auto bg-card border-border/50">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-serif text-3xl font-bold">New Service Request</h2>
-        <Badge 
-          variant="outline" 
-          className="capitalize border-primary/30 text-primary"
-        >
-          {tier} Member
+        <h2 className="font-serif text-2xl md:text-3xl font-bold">New Service Request</h2>
+        <Badge className={`capitalize ${tier === "silver" ? "tier-silver" : tier === "gold" ? "tier-gold" : tier === "platinum" ? "tier-platinum" : "tier-black"}`}>
+          {tier}
         </Badge>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Category Selection */}
         <div>
-          <Label htmlFor="category">Service Category *</Label>
-          <Select
-            value={formData.category}
-            onValueChange={handleCategorySelect}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent className="max-h-80">
-              {categories.map((cat) => {
-                const isLocked = !canAccessTier(cat.minTier);
-                return (
-                  <SelectItem 
-                    key={cat.value} 
-                    value={cat.value}
-                    disabled={isLocked}
-                    className={isLocked ? "opacity-60" : ""}
-                  >
-                    <div className="flex items-center gap-3 py-1">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span>{cat.label}</span>
-                          {isLocked && <Lock className="w-3.5 h-3.5 text-muted-foreground" />}
-                          {cat.minTier !== "silver" && (
-                            <span className={`text-xs ${cat.minTier === "gold" ? "text-yellow-500" : "text-primary"}`}>
-                              {tierIcons[cat.minTier]}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {cat.description}
-                        </p>
-                      </div>
+          <Label className="text-muted-foreground">Service Category *</Label>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+            {categories.map((cat) => {
+              const isLocked = !canAccessTier(cat.minTier);
+              const isSelected = formData.category === cat.value;
+              
+              return (
+                <button
+                  key={cat.value}
+                  type="button"
+                  onClick={() => handleCategorySelect(cat.value)}
+                  disabled={isLocked}
+                  className={`relative p-4 rounded-lg border text-left transition-all ${
+                    isSelected 
+                      ? "border-primary bg-primary/10" 
+                      : isLocked 
+                        ? "border-border/30 opacity-50 cursor-not-allowed" 
+                        : "border-border/50 hover:border-primary/50 hover:bg-card-hover"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <cat.icon className={`w-4 h-4 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                    <span className={`font-medium text-sm ${isSelected ? "text-foreground" : "text-muted-foreground"}`}>
+                      {cat.label}
+                    </span>
+                  </div>
+                  {isLocked && (
+                    <div className="absolute top-2 right-2 flex items-center gap-1">
+                      <Lock className="w-3 h-3 text-muted-foreground" />
                     </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+                  )}
+                  {cat.minTier !== "silver" && !isLocked && (
+                    <div className="absolute top-2 right-2">
+                      <span className={`text-xs ${cat.minTier === "gold" ? "text-yellow-500" : "text-primary"}`}>
+                        {tierIcons[cat.minTier]}
+                      </span>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          
+          {/* Selected category info */}
+          {selectedCategory && (
+            <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
+              <h4 className="font-semibold text-foreground mb-1">{selectedCategory.headline}</h4>
+              <p className="text-sm text-muted-foreground">{selectedCategory.description}</p>
+            </div>
+          )}
           
           {/* Upgrade prompt for locked categories */}
           {tier === "silver" && (
-            <div className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+            <div className="mt-4 p-3 rounded-lg bg-secondary border border-border/50">
               <p className="text-sm text-muted-foreground">
                 <Crown className="w-4 h-4 inline mr-1 text-primary" />
                 Upgrade to <span className="text-primary font-medium">Gold</span> or{" "}
@@ -247,65 +274,58 @@ export const RequestForm = () => {
         </div>
 
         <div>
-          <Label htmlFor="title">Request Title *</Label>
+          <Label htmlFor="title" className="text-muted-foreground">Request Title *</Label>
           <Input
             id="title"
-            placeholder="e.g., Book dinner at Michelin-starred restaurant"
+            placeholder="e.g., Book dinner at Atlas for anniversary"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            className="mt-2 bg-input border-border/50"
           />
         </div>
 
         <div>
-          <Label htmlFor="description">Details</Label>
+          <Label htmlFor="description" className="text-muted-foreground">Special Requests</Label>
           <Textarea
             id="description"
-            placeholder="Provide any additional details, preferences, or special requirements..."
+            placeholder="Any special requests or preferences..."
             rows={4}
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="mt-2 bg-input border-border/50"
           />
-        </div>
-
-        <div>
-          <Label>Preferred Date (Optional)</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full justify-start text-left font-normal">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {formData.preferred_date ? format(formData.preferred_date, "PPP") : "Select a date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={formData.preferred_date}
-                onSelect={(date) => setFormData({ ...formData, preferred_date: date })}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="budget_min">Min Budget (Optional)</Label>
-            <Input
-              id="budget_min"
-              type="number"
-              placeholder="0"
-              value={formData.budget_min}
-              onChange={(e) => setFormData({ ...formData, budget_min: e.target.value })}
-            />
+            <Label className="text-muted-foreground">Select Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal mt-2 bg-input border-border/50">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.preferred_date ? format(formData.preferred_date, "PPP") : "Select date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={formData.preferred_date}
+                  onSelect={(date) => setFormData({ ...formData, preferred_date: date })}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
+          
           <div>
-            <Label htmlFor="budget_max">Max Budget (Optional)</Label>
+            <Label htmlFor="budget_max" className="text-muted-foreground">Budget (Optional)</Label>
             <Input
               id="budget_max"
               type="number"
-              placeholder="No limit"
+              placeholder="Max budget"
               value={formData.budget_max}
               onChange={(e) => setFormData({ ...formData, budget_max: e.target.value })}
+              className="mt-2 bg-input border-border/50"
             />
           </div>
         </div>
