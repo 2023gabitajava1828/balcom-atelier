@@ -55,7 +55,7 @@ export const FeaturedMarkets = () => {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
           <div>
             <h2 className="font-serif text-3xl md:text-4xl font-bold mb-2">
-              Featured <span className="gradient-text-gold">Properties</span>
+              Global <span className="gradient-text-gold">Markets</span>
             </h2>
             <p className="text-muted-foreground">
               Explore luxury real estate in the world's most prestigious cities

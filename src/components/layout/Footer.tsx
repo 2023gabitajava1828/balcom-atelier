@@ -47,11 +47,11 @@ export const Footer = ({ className }: FooterProps) => {
             </h4>
             <ul className="space-y-3 text-sm">
               {[
-                { label: "Real Estate", path: "/real-estate" },
+                { label: "Properties", path: "/search" },
+                { label: "Lifestyle", path: "/lifestyle" },
                 { label: "Concierge", path: "/concierge" },
-                { label: "Style", path: "/style" },
-                { label: "Wealth", path: "/wealth" },
-                { label: "Community", path: "/community" },
+                { label: "Events", path: "/community" },
+                { label: "Membership", path: "/membership" },
               ].map((item) => (
                 <li key={item.path}>
                   <Link 
