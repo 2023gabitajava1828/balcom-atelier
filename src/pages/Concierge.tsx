@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Bell, Clock, CheckCircle } from "lucide-react";
 import { RequestForm } from "@/components/concierge/RequestForm";
 import { RequestsList } from "@/components/concierge/RequestsList";
+import { PerfectLiveChat } from "@/components/concierge/PerfectLiveChat";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,9 @@ const Concierge = () => {
       </main>
       <Footer className="hidden md:block" />
       <BottomTabs />
+      
+      {/* PerfectLive 24/7 Chat for Gold+ members */}
+      <PerfectLiveChat />
     </div>
   );
 };
