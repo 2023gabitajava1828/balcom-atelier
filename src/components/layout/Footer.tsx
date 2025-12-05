@@ -2,10 +2,10 @@ import { Link } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { ExternalLink } from "lucide-react";
 
-// Partner logos - replace these imports when you upload the official logos
+// Partner logos
 // import atlantaLogo from "@/assets/partners/atlanta-fine-homes-sir.png";
 // import miamiLogo from "@/assets/partners/one-sothebys-miami.png";
-// import dubaiLogo from "@/assets/partners/dubai-sothebys.png";
+import dubaiLogo from "@/assets/partners/dubai-sothebys.png";
 
 interface FooterProps {
   className?: string;
@@ -17,21 +17,22 @@ const partners = [
     subtitle: "Sotheby's International Realty",
     market: "Atlanta",
     website: "https://atlantafinehomes.com",
-    // logo: atlantaLogo,
+    logo: null as string | null,
   },
   {
     name: "ONE Sotheby's",
     subtitle: "International Realty",
     market: "Miami",
     website: "https://onesothebysrealty.com",
-    // logo: miamiLogo,
+    logo: null as string | null,
   },
   {
     name: "Dubai Sotheby's",
     subtitle: "International Realty",
     market: "Dubai",
     website: "https://sothebysrealty.ae",
-    // logo: dubaiLogo,
+    logo: dubaiLogo,
+    invertLogo: true, // Make logo white on dark background
   },
 ];
 
@@ -121,24 +122,22 @@ export const Footer = ({ className }: FooterProps) => {
                 rel="noopener noreferrer"
                 className="group flex flex-col items-center text-center p-6 rounded-lg hover:bg-background/50 transition-all duration-300"
               >
-                {/* Logo placeholder - uncomment and use when logos are uploaded */}
-                {/* {partner.logo && (
+                {partner.logo ? (
                   <img 
                     src={partner.logo} 
                     alt={`${partner.name} ${partner.subtitle}`}
-                    className="h-12 w-auto object-contain mb-4 opacity-80 group-hover:opacity-100 transition-opacity"
+                    className={`h-12 w-auto object-contain mb-4 opacity-80 group-hover:opacity-100 transition-opacity ${'invertLogo' in partner && partner.invertLogo ? 'brightness-0 invert' : ''}`}
                   />
-                )} */}
-                
-                {/* Text-based display (remove when logos are added) */}
-                <div className="mb-3">
-                  <p className="font-serif text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {partner.name}
-                  </p>
-                  <p className="font-serif text-sm text-muted-foreground italic">
-                    {partner.subtitle}
-                  </p>
-                </div>
+                ) : (
+                  <div className="mb-3">
+                    <p className="font-serif text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                      {partner.name}
+                    </p>
+                    <p className="font-serif text-sm text-muted-foreground italic">
+                      {partner.subtitle}
+                    </p>
+                  </div>
+                )}
                 
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs uppercase tracking-wider text-muted-foreground/70">
