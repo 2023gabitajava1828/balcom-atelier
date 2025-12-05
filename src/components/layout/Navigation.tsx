@@ -12,6 +12,7 @@ const navItems = [
   { label: "Search", path: "/search" },
   { label: "Shopping", path: "/shopping" },
   { label: "Auction", path: "/auction" },
+  { label: "Sports", path: "/sports" },
   { label: "Concierge", path: "/concierge" },
   { label: "Events", path: "/community" },
 ];

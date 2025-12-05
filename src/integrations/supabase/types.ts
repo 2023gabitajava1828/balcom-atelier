@@ -14,6 +14,116 @@ export type Database = {
   }
   public: {
     Tables: {
+      athlete_requests: {
+        Row: {
+          agent_id: string
+          athlete_id: string
+          budget_max: number | null
+          budget_min: number | null
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          preferred_date: string | null
+          priority: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id: string
+          athlete_id: string
+          budget_max?: number | null
+          budget_min?: number | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          preferred_date?: string | null
+          priority?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string
+          athlete_id?: string
+          budget_max?: number | null
+          budget_min?: number | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          preferred_date?: string | null
+          priority?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_requests_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      athletes: {
+        Row: {
+          agent_id: string
+          avatar_url: string | null
+          contract_end: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string
+          id: string
+          last_name: string
+          notes: string | null
+          phone: string | null
+          position: string | null
+          sport: string
+          status: string | null
+          team: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id: string
+          avatar_url?: string | null
+          contract_end?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          notes?: string | null
+          phone?: string | null
+          position?: string | null
+          sport: string
+          status?: string | null
+          team?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string
+          avatar_url?: string | null
+          contract_end?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          notes?: string | null
+          phone?: string | null
+          position?: string | null
+          sport?: string
+          status?: string | null
+          team?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       concierge_messages: {
         Row: {
           attachments: string[] | null
@@ -592,7 +702,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "MEMBER" | "CONCIERGE" | "ADVISOR" | "ADMIN"
+      app_role: "MEMBER" | "CONCIERGE" | "ADVISOR" | "ADMIN" | "AGENT"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -720,7 +830,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["MEMBER", "CONCIERGE", "ADVISOR", "ADMIN"],
+      app_role: ["MEMBER", "CONCIERGE", "ADVISOR", "ADMIN", "AGENT"],
     },
   },
 } as const
