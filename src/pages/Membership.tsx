@@ -172,10 +172,12 @@ const TierCard = ({
         <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20 opacity-50" />
       )}
 
-      {/* Recommended badge - subtle top text */}
+      {/* Recommended badge - inside card */}
       {tier.recommended && (
-        <div className="absolute -top-3 left-6 text-xs font-medium text-primary tracking-wide">
-          RECOMMENDED
+        <div className="absolute top-3 left-3 z-10">
+          <Badge variant="outline" className="text-xs border-primary/50 text-primary bg-card">
+            Recommended
+          </Badge>
         </div>
       )}
 
