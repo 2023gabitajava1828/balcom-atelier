@@ -17,7 +17,10 @@ export type Database = {
       athlete_requests: {
         Row: {
           agent_id: string
+          athlete_approval: string | null
+          athlete_approval_date: string | null
           athlete_id: string
+          athlete_notes: string | null
           budget_max: number | null
           budget_min: number | null
           category: string
@@ -32,7 +35,10 @@ export type Database = {
         }
         Insert: {
           agent_id: string
+          athlete_approval?: string | null
+          athlete_approval_date?: string | null
           athlete_id: string
+          athlete_notes?: string | null
           budget_max?: number | null
           budget_min?: number | null
           category: string
@@ -47,7 +53,10 @@ export type Database = {
         }
         Update: {
           agent_id?: string
+          athlete_approval?: string | null
+          athlete_approval_date?: string | null
           athlete_id?: string
+          athlete_notes?: string | null
           budget_max?: number | null
           budget_min?: number | null
           category?: string
@@ -87,6 +96,7 @@ export type Database = {
           status: string | null
           team: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           agent_id: string
@@ -104,6 +114,7 @@ export type Database = {
           status?: string | null
           team?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           agent_id?: string
@@ -121,6 +132,7 @@ export type Database = {
           status?: string | null
           team?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }

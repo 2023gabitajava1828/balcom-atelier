@@ -13,6 +13,7 @@ const navItems = [
   { label: "Shopping", path: "/shopping" },
   { label: "Auction", path: "/auction" },
   { label: "Sports", path: "/sports" },
+  { label: "Athlete", path: "/athlete" },
   { label: "Concierge", path: "/concierge" },
   { label: "Events", path: "/community" },
 ];
