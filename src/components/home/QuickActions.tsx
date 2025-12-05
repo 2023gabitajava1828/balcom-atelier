@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { Search, MessageSquare, Car } from "lucide-react";
+import { Search, MessageSquare, ShoppingBag, Gavel } from "lucide-react";
 
 const actions = [
   {
@@ -10,16 +10,22 @@ const actions = [
     link: "/search",
   },
   {
+    icon: ShoppingBag,
+    label: "Shopping",
+    description: "Luxury goods",
+    link: "/shopping",
+  },
+  {
+    icon: Gavel,
+    label: "Auction",
+    description: "Curated lots",
+    link: "/auction",
+  },
+  {
     icon: MessageSquare,
     label: "Concierge",
     description: "White-glove service",
     link: "/concierge",
-  },
-  {
-    icon: Car,
-    label: "Chauffeur",
-    description: "Luxury transport",
-    link: "/concierge?service=chauffeur",
   },
 ];
 
@@ -27,7 +33,7 @@ export const QuickActions = () => {
   return (
     <section className="py-8 md:py-12 -mt-16 relative z-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-3 gap-3 md:gap-4 max-w-lg mx-auto">
+        <div className="grid grid-cols-4 gap-2 md:gap-4 max-w-xl mx-auto">
           {actions.map((action, index) => (
             <Link key={action.label} to={action.link}>
               <Card 

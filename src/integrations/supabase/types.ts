@@ -324,6 +324,69 @@ export type Database = {
         }
         Relationships: []
       }
+      luxury_items: {
+        Row: {
+          auction_date: string | null
+          auction_house: string | null
+          brand: string | null
+          category: string
+          created_at: string | null
+          description: string | null
+          details: Json | null
+          estimate_high: number | null
+          estimate_low: number | null
+          featured: boolean | null
+          id: string
+          images: string[] | null
+          price: number | null
+          provenance: string | null
+          status: string | null
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          auction_date?: string | null
+          auction_house?: string | null
+          brand?: string | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          details?: Json | null
+          estimate_high?: number | null
+          estimate_low?: number | null
+          featured?: boolean | null
+          id?: string
+          images?: string[] | null
+          price?: number | null
+          provenance?: string | null
+          status?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          auction_date?: string | null
+          auction_house?: string | null
+          brand?: string | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          details?: Json | null
+          estimate_high?: number | null
+          estimate_low?: number | null
+          featured?: boolean | null
+          id?: string
+          images?: string[] | null
+          price?: number | null
+          provenance?: string | null
+          status?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       memberships: {
         Row: {
           created_at: string | null
