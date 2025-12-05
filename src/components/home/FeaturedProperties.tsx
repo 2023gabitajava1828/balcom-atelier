@@ -3,6 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { PropertyCardSkeleton, SkeletonGrid } from "@/components/ui/skeletons";
+import { InlineError } from "@/components/ui/error-fallback";
 import { ArrowRight, BedDouble, Bath, Maximize, MapPin, Heart } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +34,7 @@ export const FeaturedProperties = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [savedProperties, setSavedProperties] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     fetchAllProperties();
@@ -39,6 +42,7 @@ export const FeaturedProperties = () => {
   }, [user]);
 
   const fetchAllProperties = async () => {
+    setError(false);
     try {
       // Fetch from both sources in parallel
       const [dubaiResult, atlantaResult] = await Promise.all([
@@ -83,8 +87,14 @@ export const FeaturedProperties = () => {
       }
 
       setProperties(combined.slice(0, 6));
-    } catch (error) {
-      console.error("Error fetching properties:", error);
+      
+      // Set error if no properties found from either source
+      if (combined.length === 0) {
+        setError(true);
+      }
+    } catch (err) {
+      console.error("Error fetching properties:", err);
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -149,14 +159,37 @@ export const FeaturedProperties = () => {
     return (
       <section className="section">
         <div className="content-container">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-1/3"></div>
-            <div className="grid md:grid-cols-3 gap-6">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="aspect-[4/3] bg-muted rounded-lg"></div>
-              ))}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <div className="h-4 bg-muted rounded w-24 animate-pulse" />
+              <div className="h-10 bg-muted rounded w-64 animate-pulse" />
+              <div className="h-5 bg-muted rounded w-48 animate-pulse" />
             </div>
+            <SkeletonGrid 
+              count={3} 
+              Component={PropertyCardSkeleton} 
+              className="md:grid-cols-2 lg:grid-cols-3" 
+            />
           </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error && properties.length === 0) {
+    return (
+      <section className="section">
+        <div className="content-container">
+          <div className="text-center">
+            <p className="text-eyebrow text-primary mb-2">LIVE LISTINGS</p>
+            <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6">
+              Featured <span className="gradient-text-gold">Properties</span>
+            </h2>
+          </div>
+          <InlineError 
+            onRetry={fetchAllProperties}
+            message="Unable to load properties. Please try again."
+          />
         </div>
       </section>
     );

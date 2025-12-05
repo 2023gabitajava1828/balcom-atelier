@@ -52,6 +52,13 @@
   }
 }
 
+/* Skeleton shimmer animation */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* Balcom Privé - Luxury Design System
    Color Palette from brand spec
    All colors MUST be HSL.

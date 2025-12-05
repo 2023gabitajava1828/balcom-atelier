@@ -4,6 +4,8 @@ import { BottomTabs } from "@/components/layout/BottomTabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PropertyDetailSkeleton } from "@/components/ui/skeletons";
+import { PropertyNotFound } from "@/components/ui/error-fallback";
 import { 
   ArrowLeft, 
   Heart, 
@@ -14,7 +16,6 @@ import {
   Maximize, 
   Calendar,
   MessageSquare,
-  Loader2,
   ChevronLeft,
   ChevronRight,
   Home,
@@ -195,10 +196,11 @@ const PropertyDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
+        <main className="pt-20">
+          <PropertyDetailSkeleton />
+        </main>
         <Footer />
+        <BottomTabs />
       </div>
     );
   }
@@ -208,20 +210,10 @@ const PropertyDetail = () => {
       <div className="min-h-screen bg-background">
         <Navigation />
         <main className="pt-20 pb-24">
-          <div className="container mx-auto px-4 py-20 text-center">
-            <Card className="inline-block p-8 bg-card border-border/50">
-              <MapPin className="w-12 h-12 text-primary mx-auto mb-4" />
-              <h2 className="font-serif text-2xl font-bold mb-2">Property Not Found</h2>
-              <p className="text-muted-foreground mb-6">
-                This property may have been removed or is no longer available.
-              </p>
-              <Button onClick={() => navigate("/search")}>
-                Back to Search
-              </Button>
-            </Card>
-          </div>
+          <PropertyNotFound />
         </main>
         <Footer />
+        <BottomTabs />
       </div>
     );
   }
