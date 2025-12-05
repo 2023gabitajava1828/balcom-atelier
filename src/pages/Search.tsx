@@ -305,7 +305,8 @@ const Search = () => {
     ([key, value]) => key !== "query" && value && value !== "any"
   );
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | null | undefined) => {
+    if (!price || price === 0) return "Price Upon Request";
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -621,7 +622,7 @@ const PropertySearchCard = ({
   property: Property;
   isSaved: boolean;
   onSave: () => void;
-  formatPrice: (price: number) => string;
+  formatPrice: (price: number | null | undefined) => string;
   index: number;
   isLive?: boolean;
 }) => (

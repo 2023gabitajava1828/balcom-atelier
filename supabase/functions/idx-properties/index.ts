@@ -223,31 +223,62 @@ function processResponse(data: unknown, corsHeaders: Record<string, string>) {
 
   console.log('[IDX] Active listings after filtering:', activeListings.length);
 
+  // Log first listing structure for debugging price fields
+  if (activeListings.length > 0) {
+    const sample = activeListings[0];
+    console.log('[IDX] Sample listing keys:', Object.keys(sample).join(', '));
+    console.log('[IDX] Sample price fields:', {
+      listPrice: sample.listPrice,
+      listingPrice: sample.listingPrice,
+      price: sample.price,
+      currentPrice: sample.currentPrice,
+      originalPrice: sample.originalPrice,
+      askingPrice: sample.askingPrice,
+      salePrice: sample.salePrice,
+    });
+  }
+
   // Map IDX Broker response - EXCLUDE broker/agent info
-  const properties = activeListings.map((listing) => ({
-    id: String(listing.listingID || listing.mlsID || listing.idxID || crypto.randomUUID()),
-    title: buildTitle(listing),
-    description: cleanDescription(String(listing.remarksConcat || listing.remarks || listing.description || '')),
-    price: parseFloat(String(listing.listingPrice || listing.price || listing.listPrice || 0)),
-    bedrooms: parseInt(String(listing.bedrooms || listing.beds || 0)) || null,
-    bathrooms: parseFloat(String(listing.totalBaths || listing.bathrooms || listing.baths || 0)) || null,
-    sqft: parseInt(String(listing.sqFt || listing.squareFeet || listing.sqft || 0)) || null,
-    propertyType: String(listing.propType || listing.propertyType || listing.type || 'house'),
-    address: buildAddress(listing),
-    city: String(listing.cityName || listing.city || 'Atlanta'),
-    region: String(listing.state || listing.stateProvince || 'Georgia'),
-    country: 'USA',
-    latitude: parseFloat(String(listing.latitude || listing.lat)) || null,
-    longitude: parseFloat(String(listing.longitude || listing.lng)) || null,
-    lifestyleTags: extractLifestyleTags(listing),
-    images: extractAllImages(listing),
-    features: extractFeatures(listing),
-    status: String(listing.propStatus || listing.status || 'active').toLowerCase(),
-    mlsNumber: String(listing.listingID || listing.mlsID || ''),
-    yearBuilt: parseInt(String(listing.yearBuilt || 0)) || null,
-    lotSize: String(listing.acres || listing.lotSize || ''),
-    // Explicitly NOT including: listingAgentID, listingOfficeID, agentName, officeName, etc.
-  }));
+  const properties = activeListings.map((listing) => {
+    // Try multiple price fields - IDX uses different field names
+    const priceValue = listing.listPrice || listing.listingPrice || listing.price || 
+                       listing.currentPrice || listing.originalPrice || listing.askingPrice || 
+                       listing.salePrice || 0;
+    const parsedPrice = parseFloat(String(priceValue).replace(/[,$]/g, '')) || 0;
+    
+    if (parsedPrice === 0) {
+      console.log('[IDX] No price found for listing:', listing.listingID, 'fields:', {
+        listPrice: listing.listPrice,
+        listingPrice: listing.listingPrice,
+        price: listing.price,
+      });
+    }
+    
+    return {
+      id: String(listing.listingID || listing.mlsID || listing.idxID || crypto.randomUUID()),
+      title: buildTitle(listing),
+      description: cleanDescription(String(listing.remarksConcat || listing.remarks || listing.description || '')),
+      price: parsedPrice,
+      bedrooms: parseInt(String(listing.bedrooms || listing.beds || 0)) || null,
+      bathrooms: parseFloat(String(listing.totalBaths || listing.bathrooms || listing.baths || 0)) || null,
+      sqft: parseInt(String(listing.sqFt || listing.squareFeet || listing.sqft || 0)) || null,
+      propertyType: String(listing.propType || listing.propertyType || listing.type || 'house'),
+      address: buildAddress(listing),
+      city: String(listing.cityName || listing.city || 'Atlanta'),
+      region: String(listing.state || listing.stateProvince || 'Georgia'),
+      country: 'USA',
+      latitude: parseFloat(String(listing.latitude || listing.lat)) || null,
+      longitude: parseFloat(String(listing.longitude || listing.lng)) || null,
+      lifestyleTags: extractLifestyleTags(listing),
+      images: extractAllImages(listing),
+      features: extractFeatures(listing),
+      status: String(listing.propStatus || listing.status || 'active').toLowerCase(),
+      mlsNumber: String(listing.listingID || listing.mlsID || ''),
+      yearBuilt: parseInt(String(listing.yearBuilt || 0)) || null,
+      lotSize: String(listing.acres || listing.lotSize || ''),
+      // Explicitly NOT including: listingAgentID, listingOfficeID, agentName, officeName, etc.
+    };
+  });
 
   // Sort by price descending (most expensive first)
   properties.sort((a, b) => b.price - a.price);
