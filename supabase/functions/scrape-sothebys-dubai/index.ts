@@ -265,8 +265,8 @@ async function scrapePropertyPage(url: string): Promise<PropertyData | null> {
     // Fallback to generated description
     if (!description || description.includes('![') || description.length < 50) {
       const areaName = address.split(',')[0] || 'Dubai';
-      const typeCapitalized = propertyType.charAt(0).toUpperCase() + propertyType.slice(1);
-      description = `Luxury ${typeCapitalized.toLowerCase()} in ${areaName}, Dubai. ${bedrooms ? `${bedrooms} bedrooms, ` : ''}${bathrooms ? `${bathrooms} bathrooms, ` : ''}${sqft ? `${sqft.toLocaleString()} sq ft of` : ''} premium living space in one of Dubai's most prestigious locations.`;
+      const typeFromUrl = propertyTypeFromUrl.charAt(0).toUpperCase() + propertyTypeFromUrl.slice(1);
+      description = `Luxury ${typeFromUrl.toLowerCase()} in ${areaName}, Dubai. ${bedrooms ? `${bedrooms} bedrooms, ` : ''}${bathrooms ? `${bathrooms} bathrooms, ` : ''}${sqft ? `${sqft.toLocaleString()} sq ft of` : ''} premium living space in one of Dubai's most prestigious locations.`;
     }
     
     description = description.slice(0, 1000);
