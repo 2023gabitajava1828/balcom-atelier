@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Loader2, Lock, Crown, Sparkles } from "lucide-react";
+import { CalendarIcon, Loader2, Lock, Crown, Sparkles, Diamond } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,6 +72,7 @@ const tierIcons: Record<MembershipTier, React.ReactNode> = {
   silver: null,
   gold: <Crown className="w-3.5 h-3.5" />,
   platinum: <Sparkles className="w-3.5 h-3.5" />,
+  black: <Diamond className="w-3.5 h-3.5" />,
 };
 
 export const RequestForm = () => {

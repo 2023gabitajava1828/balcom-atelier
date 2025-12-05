@@ -4,42 +4,45 @@ import { BottomTabs } from "@/components/layout/BottomTabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Star, Sparkles, Lock } from "lucide-react";
-import { useMembership, TIER_LABELS } from "@/hooks/useMembership";
+import { Check, Crown, Star, Sparkles, Lock, Diamond } from "lucide-react";
+import { useMembership, TIER_LABELS, TIER_COLORS } from "@/hooks/useMembership";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const tiers = [
   {
     id: "silver" as const,
     name: "Silver",
     icon: Star,
-    price: "Free",
-    period: null,
+    priceAnnual: "Free",
+    priceQuarterly: null,
+    initiation: "$0",
     description: "Essential luxury services",
-    conciergeServices: ["Travel & Transportation", "Fine Dining & Reservations", "Other Requests"],
-    features: [
-      "Global property search access",
-      "Basic concierge requests (5/month)",
+    benefits: [
+      "Property browsing access",
+      "Basic concierge messaging",
       "Event invitations",
-      "Member community access",
+      "Lifestyle vendor directory",
     ],
   },
   {
     id: "gold" as const,
     name: "Gold",
     icon: Crown,
-    price: "2,500",
-    period: "month",
+    priceAnnual: "7,500",
+    priceQuarterly: "2,250",
+    initiation: "$500",
     description: "Priority lifestyle management",
-    conciergeServices: ["All Silver services", "Event Planning & VIP Access", "Personal Shopping & Styling"],
-    features: [
-      "Everything in Silver",
-      "Priority concierge (unlimited)",
-      "Tailored To You™ styling",
-      "VIP event access",
-      "Personal advisor calls",
-      "24/7 support",
+    benefits: [
+      "Priority concierge response (4-hour)",
+      "Exclusive member events",
+      "Property preview access",
+      "24/7 global support",
+      "Restaurant & nightlife reservations",
+      "Luxury car rentals coordination",
     ],
     popular: true,
   },
@@ -47,18 +50,40 @@ const tiers = [
     id: "platinum" as const,
     name: "Platinum",
     icon: Sparkles,
-    price: "10,000",
-    period: "month",
+    priceAnnual: "25,000",
+    priceQuarterly: "7,500",
+    initiation: "$1,000",
     description: "Elite white-glove experience",
-    conciergeServices: ["All Gold services", "Lifestyle Services", "Investment Advisory"],
-    features: [
-      "Everything in Gold",
-      "Dedicated concierge team",
-      "Off-market property access",
-      "Global estate management",
-      "Exclusive partner access",
-      "Custom travel arrangements",
-      "Private events hosting",
+    benefits: [
+      "Dedicated lifestyle manager",
+      "Athlete & agent services",
+      "Private jet coordination",
+      "Yacht charter access",
+      "VIP event tables & suites",
+      "International property search",
+      "Priority response (1-hour)",
+      "Family office integration",
+    ],
+  },
+  {
+    id: "black" as const,
+    name: "Black",
+    icon: Diamond,
+    priceAnnual: "50,000",
+    priceQuarterly: null,
+    initiation: "$2,500",
+    description: "Invitation Only",
+    inviteOnly: true,
+    benefits: [
+      "Senior dedicated concierge team",
+      "Global property portfolio management",
+      "Private jet ownership coordination",
+      "Superyacht access & charters",
+      "Art & collectibles advisory",
+      "Family security coordination",
+      "Estate management services",
+      "Philanthropic advisory",
+      "Legacy planning support",
     ],
   },
 ];
@@ -66,108 +91,161 @@ const tiers = [
 const Membership = () => {
   const { user } = useAuth();
   const { tier: currentTier, loading } = useMembership();
+  const [isAnnual, setIsAnnual] = useState(true);
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="pt-20 pb-20 md:pb-0">
-        <section className="py-20 bg-gradient-to-b from-background to-muted/30">
+        <section className="py-12 md:py-20 bg-gradient-to-b from-background to-background-elevated">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h1 className="font-serif text-5xl font-bold mb-4">
-                Choose Your <span className="gradient-text-gold">Membership</span>
+            <div className="text-center mb-10">
+              <h1 className="font-serif text-3xl md:text-5xl font-bold mb-4">
+                Elevate Your <span className="gradient-text-gold">Experience</span>
               </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Elevate your lifestyle with our tiered membership program
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Choose the membership tier that matches your lifestyle
               </p>
               {user && !loading && (
-                <Badge className="mt-4 text-sm px-4 py-1.5 bg-primary/10 text-primary border-primary/30">
-                  Current Plan: {TIER_LABELS[currentTier]}
+                <Badge className={`mt-4 text-sm px-4 py-1.5 ${TIER_COLORS[currentTier]}`}>
+                  CURRENT MEMBERSHIP: {TIER_LABELS[currentTier].toUpperCase()}
                 </Badge>
               )}
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            {/* Billing Toggle */}
+            <div className="flex items-center justify-center gap-4 mb-10">
+              <Label 
+                htmlFor="billing-toggle" 
+                className={`text-sm font-medium ${!isAnnual ? "text-foreground" : "text-muted-foreground"}`}
+              >
+                Quarterly
+              </Label>
+              <Switch
+                id="billing-toggle"
+                checked={isAnnual}
+                onCheckedChange={setIsAnnual}
+              />
+              <Label 
+                htmlFor="billing-toggle" 
+                className={`text-sm font-medium ${isAnnual ? "text-foreground" : "text-muted-foreground"}`}
+              >
+                Annual <span className="text-primary">(Save 15%)</span>
+              </Label>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
               {tiers.map((tier) => {
                 const isCurrentTier = user && currentTier === tier.id;
-                const isUpgrade = user && tiers.findIndex(t => t.id === currentTier) < tiers.findIndex(t => t.id === tier.id);
+                const currentTierIndex = tiers.findIndex(t => t.id === currentTier);
+                const tierIndex = tiers.findIndex(t => t.id === tier.id);
+                const isUpgrade = user && currentTierIndex < tierIndex;
+                const isDowngrade = user && currentTierIndex > tierIndex;
+                
+                const displayPrice = tier.priceAnnual === "Free" 
+                  ? "Free" 
+                  : isAnnual 
+                    ? tier.priceAnnual 
+                    : tier.priceQuarterly;
+                
+                const period = tier.priceAnnual === "Free" 
+                  ? null 
+                  : isAnnual 
+                    ? "year" 
+                    : tier.priceQuarterly 
+                      ? "quarter" 
+                      : null;
                 
                 return (
                   <Card
                     key={tier.name}
-                    className={`p-8 relative ${tier.popular ? "border-2 border-primary shadow-gold" : ""} ${isCurrentTier ? "ring-2 ring-primary/50" : ""}`}
+                    className={`p-6 relative flex flex-col ${
+                      tier.popular ? "border-2 border-primary shadow-gold" : "border-border/50"
+                    } ${isCurrentTier ? "ring-2 ring-primary/50" : ""}`}
                   >
                     {tier.popular && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold">
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
                         Most Popular
                       </div>
                     )}
+                    {tier.inviteOnly && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-card text-foreground border border-primary/30 px-3 py-1 rounded-full text-xs font-semibold">
+                        Invitation Only
+                      </div>
+                    )}
                     {isCurrentTier && (
-                      <div className="absolute -top-4 right-4 bg-card text-primary px-3 py-1 rounded-full text-xs font-semibold border border-primary">
-                        Current Plan
+                      <div className="absolute top-3 right-3">
+                        <Badge variant="outline" className="text-xs border-primary/50 text-primary">
+                          Current
+                        </Badge>
                       </div>
                     )}
 
                     <div className="text-center mb-6">
-                      <tier.icon className="w-12 h-12 text-primary mx-auto mb-4" />
-                      <h3 className="font-serif text-2xl font-bold mb-2">{tier.name}</h3>
-                      <p className="text-sm mb-4 text-muted-foreground">{tier.description}</p>
-                      <div className="flex items-baseline justify-center">
-                        {tier.price === "Free" ? (
-                          <span className="text-3xl font-bold text-foreground">Free</span>
-                        ) : (
-                          <>
-                            <span className="text-4xl font-bold gradient-text-gold">${tier.price}</span>
-                            <span className="text-muted-foreground ml-2">/{tier.period}</span>
-                          </>
-                        )}
-                      </div>
+                      <tier.icon className={`w-10 h-10 mx-auto mb-3 ${
+                        tier.id === "black" ? "text-foreground" : "text-primary"
+                      }`} />
+                      <h3 className="font-serif text-xl font-bold mb-1">{tier.name}</h3>
+                      <p className="text-xs text-muted-foreground mb-4">{tier.description}</p>
+                      
+                      {displayPrice === "Free" ? (
+                        <div className="text-2xl font-bold text-foreground">Free</div>
+                      ) : displayPrice ? (
+                        <div className="flex items-baseline justify-center gap-1">
+                          <span className="text-3xl font-bold gradient-text-gold">${displayPrice}</span>
+                          {period && <span className="text-muted-foreground text-sm">/{period}</span>}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">Annual billing only</div>
+                      )}
+                      
+                      {tier.initiation !== "$0" && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          + {tier.initiation} one-time initiation
+                        </p>
+                      )}
                     </div>
 
-                    {/* Concierge Services */}
-                    <div className="mb-6">
-                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-semibold">
-                        Concierge Services
+                    <div className="mb-6 flex-1">
+                      <p className="text-eyebrow text-muted-foreground mb-3">
+                        Benefits Include
                       </p>
                       <ul className="space-y-2">
-                        {tier.conciergeServices.map((service) => (
-                          <li key={service} className="flex items-start">
-                            <Check className="w-4 h-4 text-primary mr-2 flex-shrink-0 mt-0.5" />
-                            <span className="text-sm text-foreground">{service}</span>
+                        {tier.benefits.map((benefit) => (
+                          <li key={benefit} className="flex items-start gap-2">
+                            <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                            <span className="text-sm text-muted-foreground">{benefit}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
-
-                    {/* Features */}
-                    <ul className="space-y-2 mb-8">
-                      {tier.features.map((feature) => (
-                        <li key={feature} className="flex items-start">
-                          <Check className="w-4 h-4 text-muted-foreground mr-2 flex-shrink-0 mt-0.5" />
-                          <span className="text-sm text-muted-foreground">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
 
                     {user ? (
                       isCurrentTier ? (
                         <Button variant="outline" size="lg" className="w-full" disabled>
                           Current Plan
                         </Button>
+                      ) : tier.inviteOnly ? (
+                        <Button variant="premium" size="lg" className="w-full">
+                          Request Invitation
+                        </Button>
                       ) : isUpgrade ? (
                         <Button variant={tier.popular ? "hero" : "premium"} size="lg" className="w-full">
                           Upgrade to {tier.name}
                         </Button>
-                      ) : (
-                        <Button variant="outline" size="lg" className="w-full" disabled>
-                          <Lock className="w-4 h-4 mr-2" />
-                          Included in {TIER_LABELS[currentTier]}
+                      ) : isDowngrade ? (
+                        <Button variant="outline" size="lg" className="w-full text-muted-foreground" disabled>
+                          Included in your plan
                         </Button>
-                      )
+                      ) : null
                     ) : (
-                      <Link to="/auth">
-                        <Button variant={tier.popular ? "hero" : "premium"} size="lg" className="w-full">
-                          Get Started
+                      <Link to="/auth" className="w-full">
+                        <Button 
+                          variant={tier.popular ? "hero" : tier.inviteOnly ? "outline" : "premium"} 
+                          size="lg" 
+                          className="w-full"
+                        >
+                          {tier.inviteOnly ? "Request Invitation" : "Get Started"}
                         </Button>
                       </Link>
                     )}
@@ -176,9 +254,12 @@ const Membership = () => {
               })}
             </div>
 
-            <div className="text-center mt-12">
+            <div className="text-center mt-10 space-y-2">
               <p className="text-sm text-muted-foreground">
-                All paid memberships include 30-day satisfaction guarantee
+                All memberships include secure payment processing via Stripe.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Cancel anytime. Terms and conditions apply.
               </p>
             </div>
           </div>

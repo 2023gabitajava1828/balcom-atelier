@@ -5,60 +5,76 @@
 @tailwind utilities;
 
 /* Balcom Privé - Luxury Design System
-   Inspired by: Sotheby's, Aman Hotels, Loro Piana, Robb Report
+   Color Palette from brand spec
    All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    /* Deep Black Foundation - #050608 */
-    --background: 210 14% 3%;
-    --foreground: 36 33% 94%;
+    /* Background Colors - #050608 */
+    --background: 220 14% 3%;
+    --background-alt: 0 0% 5%;
+    --background-elevated: 225 8% 7%;
     
-    /* Champagne Gold Accent - #C7A97B */
+    /* Foreground - Ivory #F6F3EF */
+    --foreground: 36 33% 95%;
+    
+    /* Gold Accent - #C7A97B */
     --primary: 38 42% 63%;
-    --primary-foreground: 210 14% 3%;
-    --primary-glow: 38 50% 70%;
+    --primary-foreground: 220 14% 3%;
+    --primary-glow: 40 50% 65%;
+    --primary-muted: 38 30% 51%;
     
-    /* Card Surfaces - #0D0F12 */
-    --card: 216 17% 6%;
-    --card-foreground: 36 33% 94%;
-    --card-hover: 216 11% 9%;
+    /* Card Surfaces - #1A1B1E */
+    --card: 230 8% 11%;
+    --card-foreground: 36 33% 95%;
+    --card-hover: 225 7% 14%;
     
-    /* Secondary - slightly muted */
-    --secondary: 216 11% 9%;
-    --secondary-foreground: 36 33% 94%;
+    /* Secondary - #101114 */
+    --secondary: 225 12% 7%;
+    --secondary-foreground: 36 33% 95%;
     
-    /* Muted/Subtle Text - #8A8A8A */
-    --muted: 216 17% 6%;
-    --muted-foreground: 0 0% 54%;
+    /* Muted - Sand #CFC7B8 */
+    --muted: 230 8% 11%;
+    --muted-foreground: 36 15% 77%;
+    
+    /* Subtle - #8B8D94 */
+    --subtle: 228 4% 56%;
+    --subtle-dark: 225 5% 37%;
     
     /* Accent matches primary gold */
     --accent: 38 42% 63%;
-    --accent-foreground: 210 14% 3%;
+    --accent-foreground: 220 14% 3%;
     
     /* Popover surfaces */
-    --popover: 216 17% 6%;
-    --popover-foreground: 36 33% 94%;
+    --popover: 230 8% 11%;
+    --popover-foreground: 36 33% 95%;
     
     /* Status colors */
-    --destructive: 4 90% 58%;
-    --destructive-foreground: 36 33% 94%;
-    --success: 122 39% 49%;
-    --warning: 45 100% 51%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 36 33% 95%;
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
     
-    /* Border - #1F2226 */
-    --border: 214 10% 13%;
-    --input: 214 10% 13%;
+    /* Border - rgba(255,255,255,0.08) */
+    --border: 220 10% 15%;
+    --border-gold: 38 42% 63%;
+    --input: 225 12% 8%;
     --ring: 38 42% 63%;
+    
+    /* Tier Colors */
+    --tier-silver: 225 3% 67%;
+    --tier-gold: 38 42% 63%;
+    --tier-platinum: 30 7% 89%;
+    --tier-black: 230 8% 11%;
     
     --radius: 0.75rem;
     
     /* Luxury Gradients */
-    --gradient-gold: linear-gradient(135deg, hsl(38, 42%, 63%), hsl(38, 50%, 70%));
-    --gradient-dark: linear-gradient(180deg, hsl(210, 14%, 3%), hsl(216, 17%, 6%));
-    --gradient-hero: linear-gradient(to bottom, hsl(210, 14%, 3% / 0.2), hsl(210, 14%, 3% / 0.95));
-    --gradient-card: linear-gradient(145deg, hsl(216, 17%, 6%), hsl(216, 11%, 9%));
+    --gradient-gold: linear-gradient(135deg, hsl(38, 42%, 63%), hsl(40, 50%, 65%));
+    --gradient-dark: linear-gradient(180deg, hsl(220, 14%, 3%), hsl(230, 8%, 11%));
+    --gradient-hero: linear-gradient(to bottom, hsl(220, 14%, 3% / 0.2), hsl(220, 14%, 3% / 0.95));
+    --gradient-card: linear-gradient(145deg, hsl(230, 8%, 11%), hsl(225, 7%, 14%));
     --gradient-gold-muted: linear-gradient(135deg, hsl(38, 42%, 63% / 0.15), hsl(38, 42%, 63% / 0.05));
     
     /* Elegant Shadows */
@@ -71,13 +87,13 @@
     --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     
     /* Sidebar */
-    --sidebar-background: 216 17% 6%;
-    --sidebar-foreground: 36 33% 94%;
+    --sidebar-background: 230 8% 11%;
+    --sidebar-foreground: 36 33% 95%;
     --sidebar-primary: 38 42% 63%;
-    --sidebar-primary-foreground: 210 14% 3%;
-    --sidebar-accent: 216 11% 9%;
-    --sidebar-accent-foreground: 36 33% 94%;
-    --sidebar-border: 214 10% 13%;
+    --sidebar-primary-foreground: 220 14% 3%;
+    --sidebar-accent: 225 7% 14%;
+    --sidebar-accent-foreground: 36 33% 95%;
+    --sidebar-border: 220 10% 15%;
     --sidebar-ring: 38 42% 63%;
   }
 }
@@ -187,23 +203,95 @@
     -webkit-backdrop-filter: blur(12px);
   }
   
-  /* Typography utilities */
+  /* Typography utilities - matching spec */
   .text-display {
     font-family: 'Playfair Display', Georgia, serif;
+    font-size: 48px;
     font-weight: 700;
     letter-spacing: -0.02em;
   }
   
-  .text-button {
+  .text-hero {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 36px;
+    font-weight: 800;
+  }
+  
+  .text-h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 28px;
+    font-weight: 700;
+  }
+  
+  .text-h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  
+  .text-h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  
+  .text-editorial {
     font-family: 'Inter', sans-serif;
-    font-size: 0.875rem;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+  
+  .text-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.1em;
+  }
+  
+  .text-button {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  
+  .text-price {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  .text-caption {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
   }
 
   /* Safe area for iOS notch/home indicator */
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  /* Tier badge colors */
+  .tier-silver {
+    background-color: hsl(var(--tier-silver));
+    color: hsl(230, 8%, 11%);
+  }
+  
+  .tier-gold {
+    background-color: hsl(var(--tier-gold));
+    color: hsl(230, 8%, 11%);
+  }
+  
+  .tier-platinum {
+    background-color: hsl(var(--tier-platinum));
+    color: hsl(230, 8%, 11%);
+  }
+  
+  .tier-black {
+    background-color: hsl(230, 8%, 11%);
+    color: hsl(36, 33%, 95%);
+    border: 1px solid hsl(var(--primary) / 0.3);
   }
 }
