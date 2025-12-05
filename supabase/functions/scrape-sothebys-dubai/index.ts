@@ -34,10 +34,46 @@ const AED_TO_USD_RATE = 0.27;
 function parsePrice(priceStr: string): number {
   // Remove "AED", commas, spaces
   const cleaned = priceStr.replace(/AED|,|\s/gi, '').trim();
-  const numericValue = parseFloat(cleaned);
-  if (isNaN(numericValue)) return 0;
+  // Extract just numbers (handle concatenated format like "296,000,0007Beds")
+  const numMatch = cleaned.match(/^(\d+)/);
+  const numericValue = numMatch ? parseFloat(numMatch[1]) : 0;
+  if (isNaN(numericValue) || numericValue === 0) return 0;
   // Convert to USD
   return Math.round(numericValue * AED_TO_USD_RATE);
+}
+
+function extractPriceFromContent(markdown: string, html: string): number {
+  // Try multiple patterns for price extraction
+  
+  // Pattern 1: Look for price in HTML span (most reliable)
+  const htmlPriceMatch = html.match(/font-medium text-sm[^>]*>(\d{1,3}(?:,\d{3})+)<\/span>/i);
+  if (htmlPriceMatch) {
+    return parsePrice(htmlPriceMatch[1]);
+  }
+  
+  // Pattern 2: Look for concatenated format like "296,000,0007Beds"
+  const concatMatch = markdown.match(/([\d,]+)\d*Beds/i) || html.match(/([\d,]+)\d*<!-- -->Beds/i);
+  if (concatMatch) {
+    // The price is everything before the last digit that connects to "Beds"
+    const priceStr = concatMatch[1].replace(/\d$/, ''); // Remove last digit if it's the beds count
+    if (priceStr.length > 3) {
+      return parsePrice(priceStr);
+    }
+  }
+  
+  // Pattern 3: Standard AED format
+  const aedMatch = markdown.match(/AED\s*([\d,]+)/i) || html.match(/AED[^\d]*([\d,]+)/i);
+  if (aedMatch) {
+    return parsePrice(aedMatch[1]);
+  }
+  
+  // Pattern 4: Large number followed by beds/baths (Sotheby's specific)
+  const largeNumMatch = markdown.match(/([\d,]{8,})\d*(?:Bed|Bath)/i);
+  if (largeNumMatch) {
+    return parsePrice(largeNumMatch[1]);
+  }
+  
+  return 0;
 }
 
 function parseNumber(str: string | null | undefined): number | null {
@@ -127,7 +163,7 @@ async function scrapePropertyPage(url: string): Promise<PropertyData | null> {
         url,
         formats: ['markdown', 'html'],
         onlyMainContent: true,
-        waitFor: 2000,
+        waitFor: 3000,
       }),
     });
 
@@ -144,69 +180,108 @@ async function scrapePropertyPage(url: string): Promise<PropertyData | null> {
     
     console.log(`Scraped ${url}, markdown length: ${markdown.length}`);
 
-    // Extract data from markdown/html
-    const lines = markdown.split('\n').filter((l: string) => l.trim());
+    // Extract property type and location from URL
+    // Format: /properties/buy/villa-for-sale-dubai-palm-jumeirah-xxii-carat-49522
+    const urlParts = url.split('/').pop()?.split('-') || [];
+    const propertyTypeFromUrl = urlParts[0] || 'property'; // villa, apartment, penthouse, etc.
     
-    // Try to extract title
-    let title = metadata.title || '';
-    if (!title) {
-      const h1Match = markdown.match(/^#\s+(.+)$/m);
-      title = h1Match ? h1Match[1] : 'Dubai Luxury Property';
+    // Find location from the first line (usually "Palm Jumeirah, Dubai")
+    const firstLine = markdown.split('\n').find((l: string) => l.trim() && !l.startsWith('!') && !l.startsWith('['));
+    const locationFromContent = firstLine?.trim() || '';
+    
+    // Build title from location and property type
+    let title = '';
+    if (locationFromContent && locationFromContent.includes(',')) {
+      const [area] = locationFromContent.split(',').map((s: string) => s.trim());
+      title = `${propertyTypeFromUrl.charAt(0).toUpperCase() + propertyTypeFromUrl.slice(1)} in ${area}`;
+    } else {
+      title = metadata.title?.replace(/\s*\|\s*Sotheby.*$/i, '').trim() || `Luxury ${propertyTypeFromUrl} in Dubai`;
     }
-    title = title.replace(/\s*\|\s*Sotheby.*$/i, '').trim();
 
-    // Extract price
-    const priceMatch = markdown.match(/AED\s*[\d,]+/i) || html.match(/AED\s*[\d,]+/i);
-    const price = priceMatch ? parsePrice(priceMatch[0]) : 0;
+    // Extract price using the improved function
+    const price = extractPriceFromContent(markdown, html);
+    console.log(`Extracted price: ${price} USD from ${url}`);
 
-    // Extract bedrooms
-    const bedsMatch = markdown.match(/(\d+)\s*(?:Bed|BR|Bedroom)/i);
+    // Extract bedrooms - look for pattern like "7Beds" or "7 Beds"
+    const bedsMatch = markdown.match(/(\d+)\s*Beds?/i) || html.match(/>(\d+)<!-- -->.*Beds/i);
     const bedrooms = bedsMatch ? parseInt(bedsMatch[1]) : null;
 
     // Extract bathrooms  
-    const bathsMatch = markdown.match(/(\d+(?:\.\d+)?)\s*(?:Bath|BA|Bathroom)/i);
-    const bathrooms = bathsMatch ? parseNumber(bathsMatch[1]) : null;
+    const bathsMatch = markdown.match(/(\d+)\s*Baths?/i) || html.match(/>(\d+)<!-- -->.*Baths/i);
+    const bathrooms = bathsMatch ? parseInt(bathsMatch[1]) : null;
 
     // Extract sqft
-    const sqftMatch = markdown.match(/([\d,]+)\s*(?:SQ\.?\s*FT|sqft|sq\s*ft|square\s*feet)/i);
+    const sqftMatch = markdown.match(/([\d,]+)\s*SQ\.?\s*FT/i);
     const sqft = sqftMatch ? parseNumber(sqftMatch[1].replace(/,/g, '')) : null;
 
-    // Extract location/address
-    const locationMatch = markdown.match(/(?:Location|Address|Area):\s*(.+)/i);
-    let address = locationMatch ? locationMatch[1].trim() : '';
+    // Use location from content or URL
+    let address = locationFromContent || '';
     if (!address) {
-      // Try to get from URL
-      const urlParts = url.split('/');
-      address = urlParts.slice(-2, -1)[0]?.replace(/-/g, ' ') || 'Dubai';
+      // Try to construct from URL parts
+      const locationParts = urlParts.slice(4, -1); // Skip property type and ID
+      address = locationParts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+    }
+
+    // Determine city from URL or content
+    let city = 'Dubai';
+    if (url.includes('-london-') || locationFromContent.toLowerCase().includes('london')) {
+      city = 'London';
+    } else if (url.includes('-dubai-') || locationFromContent.toLowerCase().includes('dubai')) {
+      city = 'Dubai';
+    }
+
+    // Skip non-Dubai properties for this sync
+    if (city !== 'Dubai') {
+      console.log(`Skipping non-Dubai property: ${url}`);
+      return null;
     }
 
     // Extract description
     const descMatch = markdown.match(/(?:Description|About|Overview)[:\s]*\n(.+(?:\n.+)*)/i);
     let description = descMatch ? descMatch[1].trim() : '';
     if (!description) {
-      // Take first paragraph
+      // Take first paragraph from markdown lines
+      const lines = markdown.split('\n').filter((l: string) => l.trim());
       description = lines.find((l: string) => l.length > 100) || `Luxury property in Dubai, UAE.`;
     }
     description = description.slice(0, 1000);
 
-    // Extract images from HTML
+    // Extract images from HTML - Sotheby's uses S3 for images
     const images: string[] = [];
+    
+    // Pattern 1: S3 image URLs (most reliable for Sotheby's)
+    const s3Matches = html.matchAll(/https:\/\/my-dubai-real-estate\.s3[^"'\s]+\.(?:jpg|jpeg|png|webp)/gi);
+    for (const match of s3Matches) {
+      if (!images.includes(match[0])) {
+        images.push(match[0]);
+      }
+    }
+    
+    // Pattern 2: CDN image URLs with original S3 source
+    const cdnMatches = html.matchAll(/https:\/\/sothebysrealty\.ae\/cdn-cgi\/image[^"']+/gi);
+    for (const match of cdnMatches) {
+      if (!images.includes(match[0]) && images.length < 30) {
+        images.push(match[0]);
+      }
+    }
+    
+    // Pattern 3: Standard img src
     const imgMatches = html.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi);
     for (const match of imgMatches) {
       const src = match[1];
-      if (src && (src.includes('property') || src.includes('listing') || src.includes('cdn') || src.includes('image')) && 
-          !src.includes('logo') && !src.includes('icon') && !src.includes('avatar')) {
-        if (src.startsWith('http')) {
-          images.push(src);
-        } else if (src.startsWith('/')) {
-          images.push(`https://sothebysrealty.ae${src}`);
+      if (src && !images.includes(src) && images.length < 30) {
+        if ((src.includes('s3') || src.includes('cdn') || src.includes('listing')) && 
+            !src.includes('logo') && !src.includes('icon') && !src.includes('avatar') && !src.includes('svg')) {
+          if (src.startsWith('http')) {
+            images.push(src);
+          }
         }
       }
     }
 
     // Also try og:image
     const ogImageMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
-    if (ogImageMatch && ogImageMatch[1]) {
+    if (ogImageMatch && ogImageMatch[1] && !images.includes(ogImageMatch[1])) {
       images.unshift(ogImageMatch[1]);
     }
 
