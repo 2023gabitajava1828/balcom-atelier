@@ -122,9 +122,9 @@ async function mapPropertyUrls(): Promise<string[]> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      url: 'https://sothebysrealty.ae',
-      search: '/properties/',
-      limit: 200,
+      url: 'https://sothebysrealty.ae/properties/buy',
+      search: 'dubai',
+      limit: 500,
     }),
   });
 
@@ -137,16 +137,17 @@ async function mapPropertyUrls(): Promise<string[]> {
   const data = await response.json();
   console.log('Map response:', JSON.stringify(data).slice(0, 500));
   
-  // Filter to only property detail pages
+  // Filter to only Dubai property detail pages
   const propertyUrls = (data.links || []).filter((url: string) => 
     url.includes('/properties/buy/') && 
+    url.includes('-dubai-') &&
     !url.endsWith('/buy/') &&
     !url.includes('?') &&
     url.split('/').length > 5
   );
   
-  console.log(`Found ${propertyUrls.length} property URLs`);
-  return propertyUrls.slice(0, 50); // Limit to 50 for initial sync
+  console.log(`Found ${propertyUrls.length} Dubai property URLs`);
+  return propertyUrls.slice(0, 100); // Process up to 100 Dubai properties
 }
 
 async function scrapePropertyPage(url: string): Promise<PropertyData | null> {
@@ -222,19 +223,18 @@ async function scrapePropertyPage(url: string): Promise<PropertyData | null> {
       address = locationParts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
     }
 
-    // Determine city from URL or content
-    let city = 'Dubai';
-    if (url.includes('-london-') || locationFromContent.toLowerCase().includes('london')) {
-      city = 'London';
-    } else if (url.includes('-dubai-') || locationFromContent.toLowerCase().includes('dubai')) {
-      city = 'Dubai';
-    }
-
-    // Skip non-Dubai properties for this sync
-    if (city !== 'Dubai') {
+    // Determine city from URL - MUST contain "-dubai-" to be included
+    const isDubaiProperty = url.toLowerCase().includes('-dubai-') || 
+                            url.toLowerCase().includes('/dubai/') ||
+                            locationFromContent.toLowerCase().includes('dubai');
+    
+    // Skip non-Dubai properties for this sync - be strict
+    if (!isDubaiProperty) {
       console.log(`Skipping non-Dubai property: ${url}`);
       return null;
     }
+    
+    const city = 'Dubai';
 
     // Extract description - find clean prose, avoiding price/beds/baths concatenated text
     let description = '';
