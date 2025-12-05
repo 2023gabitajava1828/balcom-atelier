@@ -1,11 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, ShoppingBag, Gavel, MessageSquare, User } from "lucide-react";
+import { Home, Search, ShoppingBag, Trophy, MessageSquare, User } from "lucide-react";
 
 const tabs = [
   { label: "Home", path: "/", icon: Home },
   { label: "Search", path: "/search", icon: Search },
   { label: "Shop", path: "/shopping", icon: ShoppingBag },
-  { label: "Auction", path: "/auction", icon: Gavel },
+  { label: "Sports", path: "/sports", icon: Trophy },
   { label: "Concierge", path: "/concierge", icon: MessageSquare },
 ];
 
