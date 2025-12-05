@@ -1,9 +1,9 @@
 import { Navigation } from "@/components/layout/Navigation";
 import { Footer } from "@/components/layout/Footer";
-import { Card } from "@/components/ui/card";
-import { MapPin } from "lucide-react";
 import { PropertyCard } from "@/components/properties/PropertyCard";
 import { PropertyFilters, PropertySearchFilters } from "@/components/properties/PropertyFilters";
+import { PropertyCardSkeleton, SkeletonGrid } from "@/components/ui/skeletons";
+import { NoPropertiesFound } from "@/components/ui/empty-state";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -140,19 +140,13 @@ const RealEstate = () => {
             <PropertyFilters onSearch={handleSearch} />
 
             {loading ? (
-              <div className="text-center py-12">
-                <p className="text-foreground/60">Loading properties...</p>
-              </div>
+              <SkeletonGrid 
+                count={6} 
+                Component={PropertyCardSkeleton} 
+                className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+              />
             ) : properties.length === 0 ? (
-              <div className="text-center py-20">
-                <Card className="inline-block p-8 bg-muted/50">
-                  <MapPin className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <h2 className="font-serif text-2xl font-bold mb-2">No Properties Found</h2>
-                  <p className="text-foreground/70">
-                    Try adjusting your search filters or check back soon
-                  </p>
-                </Card>
-              </div>
+              <NoPropertiesFound onClearFilters={() => setFilters(null)} />
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {properties.map((property) => (

@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EventDetailModal } from "@/components/events/EventDetailModal";
+import { EventCardSkeleton, SkeletonGrid } from "@/components/ui/skeletons";
+import { NoUpcomingEvents } from "@/components/ui/empty-state";
 import { Calendar, MapPin, Users, Clock, Lock, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -128,21 +130,13 @@ const Events = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {/* Events Grid */}
           {loading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="animate-pulse">
-                  <div className="aspect-[16/10] bg-muted rounded-lg mb-4"></div>
-                  <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
-                  <div className="h-4 bg-muted rounded w-1/2"></div>
-                </div>
-              ))}
-            </div>
+            <SkeletonGrid 
+              count={6} 
+              Component={EventCardSkeleton} 
+              className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+            />
           ) : events.length === 0 ? (
-            <Card className="p-12 text-center bg-card border-border/50">
-              <Calendar className="w-12 h-12 text-primary mx-auto mb-4" />
-              <h2 className="font-serif text-2xl font-bold mb-2">No Upcoming Events</h2>
-              <p className="text-muted-foreground">Check back soon for exclusive member events</p>
-            </Card>
+            <NoUpcomingEvents />
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {events.map((event, index) => {

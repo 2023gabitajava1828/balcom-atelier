@@ -5,7 +5,8 @@ import { BottomTabs } from "@/components/layout/BottomTabs";
 import { LuxuryItemCard } from "@/components/luxury/LuxuryItemCard";
 import { ItemDetailModal } from "@/components/luxury/ItemDetailModal";
 import { CategoryFilter } from "@/components/luxury/CategoryFilter";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LuxuryItemSkeleton, SkeletonGrid } from "@/components/ui/skeletons";
+import { NoLuxuryItems } from "@/components/ui/empty-state";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -118,26 +119,13 @@ const Shopping = () => {
         {/* Items Grid */}
         <section className="container mx-auto px-4 sm:px-6 lg:px-8">
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <Skeleton className="aspect-[4/3] rounded-lg" />
-                  <Skeleton className="h-4 w-1/3" />
-                  <Skeleton className="h-6 w-2/3" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              ))}
-            </div>
+            <SkeletonGrid 
+              count={6} 
+              Component={LuxuryItemSkeleton} 
+              className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+            />
           ) : filteredItems.length === 0 ? (
-            <div className="text-center py-16">
-              <ShoppingBag className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
-              <h3 className="font-serif text-xl font-semibold mb-2">No items found</h3>
-              <p className="text-muted-foreground">
-                {selectedCategory !== "All" 
-                  ? `No items in ${selectedCategory} category yet.`
-                  : "Check back soon for new luxury items."}
-              </p>
-            </div>
+            <NoLuxuryItems />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredItems.map((item) => (
