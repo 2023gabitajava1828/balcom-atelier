@@ -120,12 +120,20 @@ export async function getPropertiesFromSavedLink(savedLinkId: string): Promise<P
 }
 
 /**
- * Get a single property by ID
+ * Get a single property by ID - searches within saved link 13759
  */
 export async function getPropertyById(id: string): Promise<Property | null> {
-  console.log('[IDX] Getting property:', id);
-  const properties = await searchProperties({ limit: 100 });
-  return properties.find(p => p.id === id) || null;
+  console.log('[IDX] Getting property by ID:', id);
+  
+  // Search within the Atlanta saved link (13759) with high limit to find the property
+  const properties = await searchProperties({ 
+    savedLinkId: '13759',
+    limit: 500 
+  });
+  
+  const found = properties.find(p => p.id === id);
+  console.log('[IDX] Property found:', found ? 'yes' : 'no');
+  return found || null;
 }
 
 /**

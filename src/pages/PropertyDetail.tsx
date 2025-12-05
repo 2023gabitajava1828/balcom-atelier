@@ -16,13 +16,16 @@ import {
   MessageSquare,
   Loader2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Home,
+  Ruler
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { getPropertyById as getIdxProperty } from "@/lib/integrations/realtycandy-idx";
 
 interface Property {
   id: string;
@@ -34,13 +37,15 @@ interface Property {
   bedrooms: number | null;
   bathrooms: number | null;
   sqft: number | null;
-  lot_size?: number | null;
+  lot_size?: string | null;
   year_built?: number | null;
   property_type: string | null;
   images: string[] | null;
   lifestyle_tags: string[] | null;
   address: string | null;
   features?: string[] | null;
+  mls_number?: string | null;
+  status?: string | null;
 }
 
 const PropertyDetail = () => {
@@ -64,14 +69,50 @@ const PropertyDetail = () => {
   }, [id, user]);
 
   const fetchProperty = async () => {
+    if (!id) return;
     setLoading(true);
-    const { data, error } = await supabase
+    
+    // First, try fetching from IDX API (for Atlanta FMLS listings)
+    console.log('[PropertyDetail] Fetching property:', id);
+    const idxProperty = await getIdxProperty(id);
+    
+    if (idxProperty) {
+      console.log('[PropertyDetail] Found IDX property:', idxProperty.title);
+      // Map IDX format to our Property interface
+      setProperty({
+        id: idxProperty.id,
+        title: idxProperty.title,
+        description: idxProperty.description,
+        price: idxProperty.price,
+        city: idxProperty.city,
+        country: idxProperty.country,
+        bedrooms: idxProperty.bedrooms,
+        bathrooms: idxProperty.bathrooms,
+        sqft: idxProperty.sqft,
+        property_type: idxProperty.propertyType,
+        images: idxProperty.images,
+        lifestyle_tags: idxProperty.lifestyleTags,
+        address: idxProperty.address,
+        features: idxProperty.features,
+        year_built: idxProperty.yearBuilt,
+        lot_size: idxProperty.lotSize,
+        mls_number: idxProperty.mlsNumber,
+        status: idxProperty.status,
+      });
+      setLoading(false);
+      return;
+    }
+    
+    // Fallback to Supabase for curated properties (Dubai, Miami, etc.)
+    console.log('[PropertyDetail] Trying Supabase fallback');
+    const { data } = await supabase
       .from("properties")
       .select("*")
       .eq("id", id)
       .maybeSingle();
 
     if (data) {
+      console.log('[PropertyDetail] Found Supabase property:', data.title);
       setProperty(data);
     }
     setLoading(false);
@@ -128,7 +169,8 @@ const PropertyDetail = () => {
     }
   };
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | null | undefined) => {
+    if (!price || price === 0) return "Price Upon Request";
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -213,6 +255,15 @@ const PropertyDetail = () => {
               {formatPrice(property.price)}
             </Badge>
           </div>
+
+          {/* Status Badge */}
+          {property.status && property.status !== 'active' && (
+            <div className="absolute top-4 left-4">
+              <Badge variant="secondary" className="text-sm px-3 py-1 capitalize">
+                {property.status}
+              </Badge>
+            </div>
+          )}
           
           {/* Image Navigation */}
           {images.length > 1 && (
@@ -244,7 +295,7 @@ const PropertyDetail = () => {
         {images.length > 1 && (
           <div className="container mx-auto px-4 py-4">
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
-              {images.map((img, idx) => (
+              {images.slice(0, 20).map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentImageIndex(idx)}
@@ -261,6 +312,11 @@ const PropertyDetail = () => {
                   />
                 </button>
               ))}
+              {images.length > 20 && (
+                <div className="flex-shrink-0 w-20 h-16 md:w-24 md:h-18 rounded-lg bg-muted flex items-center justify-center">
+                  <span className="text-sm text-muted-foreground">+{images.length - 20}</span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -282,37 +338,56 @@ const PropertyDetail = () => {
                     {property.city}, {property.country}
                   </span>
                 </div>
+                {property.mls_number && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    MLS# {property.mls_number}
+                  </p>
+                )}
               </div>
 
               {/* Quick Stats */}
               <Card className="p-6 bg-card border-border/50">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  {property.bedrooms && (
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                  {property.bedrooms && property.bedrooms > 0 && (
                     <div className="text-center">
                       <BedDouble className="w-6 h-6 mx-auto mb-2 text-primary" />
                       <p className="font-semibold text-lg">{property.bedrooms}</p>
                       <p className="text-sm text-muted-foreground">Bedrooms</p>
                     </div>
                   )}
-                  {property.bathrooms && (
+                  {property.bathrooms && property.bathrooms > 0 && (
                     <div className="text-center">
                       <Bath className="w-6 h-6 mx-auto mb-2 text-primary" />
                       <p className="font-semibold text-lg">{property.bathrooms}</p>
                       <p className="text-sm text-muted-foreground">Bathrooms</p>
                     </div>
                   )}
-                  {property.sqft && (
+                  {property.sqft && property.sqft > 0 && (
                     <div className="text-center">
                       <Maximize className="w-6 h-6 mx-auto mb-2 text-primary" />
                       <p className="font-semibold text-lg">{property.sqft.toLocaleString()}</p>
                       <p className="text-sm text-muted-foreground">Sq Ft</p>
                     </div>
                   )}
-                  {property.year_built && (
+                  {property.year_built && property.year_built > 0 && (
                     <div className="text-center">
                       <Calendar className="w-6 h-6 mx-auto mb-2 text-primary" />
                       <p className="font-semibold text-lg">{property.year_built}</p>
                       <p className="text-sm text-muted-foreground">Year Built</p>
+                    </div>
+                  )}
+                  {property.lot_size && (
+                    <div className="text-center">
+                      <Ruler className="w-6 h-6 mx-auto mb-2 text-primary" />
+                      <p className="font-semibold text-lg">{property.lot_size}</p>
+                      <p className="text-sm text-muted-foreground">Lot Size</p>
+                    </div>
+                  )}
+                  {property.property_type && (
+                    <div className="text-center">
+                      <Home className="w-6 h-6 mx-auto mb-2 text-primary" />
+                      <p className="font-semibold text-lg capitalize">{property.property_type}</p>
+                      <p className="text-sm text-muted-foreground">Type</p>
                     </div>
                   )}
                 </div>
@@ -376,6 +451,11 @@ const PropertyDetail = () => {
                     {property.property_type && (
                       <p className="text-sm text-muted-foreground capitalize mt-1">
                         {property.property_type}
+                      </p>
+                    )}
+                    {property.mls_number && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        MLS# {property.mls_number}
                       </p>
                     )}
                   </div>
