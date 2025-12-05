@@ -21,7 +21,8 @@ const Admin = () => {
   });
   const [events, setEvents] = useState<any[]>([]);
   const [dubaiProperties, setDubaiProperties] = useState<any[]>([]);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [isSyncingSothebys, setIsSyncingSothebys] = useState(false);
+  const [isSyncingChristies, setIsSyncingChristies] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
 
   useEffect(() => {
@@ -67,8 +68,8 @@ const Admin = () => {
     if (data) setDubaiProperties(data);
   };
 
-  const handleSyncDubaiProperties = async () => {
-    setIsSyncing(true);
+  const handleSyncSothebys = async () => {
+    setIsSyncingSothebys(true);
     try {
       const { data, error } = await supabase.functions.invoke('scrape-sothebys-dubai', {
         body: { action: 'sync' }
@@ -77,7 +78,7 @@ const Admin = () => {
       if (error) throw error;
 
       toast({
-        title: "Dubai Properties Synced",
+        title: "Sotheby's Dubai Synced",
         description: `Scraped ${data.scraped} properties. Inserted: ${data.inserted}, Updated: ${data.updated}`,
       });
 
@@ -88,11 +89,40 @@ const Admin = () => {
       console.error('Sync error:', error);
       toast({
         title: "Sync Failed",
-        description: error.message || "Failed to sync Dubai properties",
+        description: error.message || "Failed to sync Sotheby's properties",
         variant: "destructive",
       });
     } finally {
-      setIsSyncing(false);
+      setIsSyncingSothebys(false);
+    }
+  };
+
+  const handleSyncChristies = async () => {
+    setIsSyncingChristies(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('scrape-christies-dubai', {
+        body: { action: 'sync' }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Christie's Dubai Synced",
+        description: `Scraped ${data.scraped} properties. Inserted: ${data.inserted}, Updated: ${data.updated}`,
+      });
+
+      setLastSync(new Date().toISOString());
+      fetchDubaiProperties();
+      fetchStats();
+    } catch (error: any) {
+      console.error('Sync error:', error);
+      toast({
+        title: "Sync Failed",
+        description: error.message || "Failed to sync Christie's properties",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncingChristies(false);
     }
   };
 
@@ -158,23 +188,44 @@ const Admin = () => {
                           {lastSync && ` • Last synced: ${format(new Date(lastSync), "PPp")}`}
                         </p>
                       </div>
-                      <Button 
-                        onClick={handleSyncDubaiProperties} 
-                        disabled={isSyncing}
-                        variant="hero"
-                      >
-                        {isSyncing ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Syncing...
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className="w-4 h-4 mr-2" />
-                            Sync Dubai Properties
-                          </>
-                        )}
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={handleSyncSothebys} 
+                          disabled={isSyncingSothebys || isSyncingChristies}
+                          variant="hero"
+                          size="sm"
+                        >
+                          {isSyncingSothebys ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Syncing...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2" />
+                              Sotheby's
+                            </>
+                          )}
+                        </Button>
+                        <Button 
+                          onClick={handleSyncChristies} 
+                          disabled={isSyncingSothebys || isSyncingChristies}
+                          variant="outline"
+                          size="sm"
+                        >
+                          {isSyncingChristies ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Syncing...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2" />
+                              Christie's
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     </div>
                     
                     <div className="grid gap-4">

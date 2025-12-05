@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.scrape-sothebys-dubai]
 verify_jwt = false
+
+[functions.scrape-christies-dubai]
+verify_jwt = false
