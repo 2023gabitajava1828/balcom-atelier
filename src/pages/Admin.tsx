@@ -12,7 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ConciergeRequestsManager } from "@/components/admin/ConciergeRequestsManager";
 import { AddPropertyModal } from "@/components/admin/AddPropertyModal";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 import { useToast } from "@/hooks/use-toast";
+
+const ITEMS_PER_PAGE = 10;
 
 const Admin = () => {
   const { toast } = useToast();
@@ -34,13 +37,30 @@ const Admin = () => {
   const [lastSync, setLastSync] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  
+  // Pagination state
+  const [propertiesPage, setPropertiesPage] = useState(1);
+  const [propertiesTotal, setPropertiesTotal] = useState(0);
+  const [luxuryPage, setLuxuryPage] = useState(1);
+  const [luxuryTotal, setLuxuryTotal] = useState(0);
+  const [eventsPage, setEventsPage] = useState(1);
+  const [eventsTotal, setEventsTotal] = useState(0);
 
   useEffect(() => {
     fetchStats();
-    fetchEvents();
-    fetchDubaiProperties();
-    fetchLuxuryItems();
   }, []);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [eventsPage]);
+
+  useEffect(() => {
+    fetchDubaiProperties();
+  }, [propertiesPage]);
+
+  useEffect(() => {
+    fetchLuxuryItems();
+  }, [luxuryPage]);
 
   const fetchStats = async () => {
     const [membersRes, requestsRes, eventsRes, propertiesRes, luxuryRes] = await Promise.all([
@@ -61,35 +81,47 @@ const Admin = () => {
   };
 
   const fetchEvents = async () => {
-    const { data } = await supabase
+    const from = (eventsPage - 1) * ITEMS_PER_PAGE;
+    const to = from + ITEMS_PER_PAGE - 1;
+    
+    const { data, count } = await supabase
       .from("events")
-      .select("*")
+      .select("*", { count: "exact" })
       .order("event_date", { ascending: true })
-      .limit(10);
+      .range(from, to);
 
     if (data) setEvents(data);
+    if (count !== null) setEventsTotal(count);
   };
 
   const fetchDubaiProperties = async () => {
-    const { data } = await supabase
+    const from = (propertiesPage - 1) * ITEMS_PER_PAGE;
+    const to = from + ITEMS_PER_PAGE - 1;
+    
+    const { data, count } = await supabase
       .from("properties")
-      .select("*")
+      .select("*", { count: "exact" })
       .eq("city", "Dubai")
       .order("created_at", { ascending: false })
-      .limit(20);
+      .range(from, to);
 
     if (data) setDubaiProperties(data);
+    if (count !== null) setPropertiesTotal(count);
   };
 
   const fetchLuxuryItems = async () => {
-    const { data } = await supabase
+    const from = (luxuryPage - 1) * ITEMS_PER_PAGE;
+    const to = from + ITEMS_PER_PAGE - 1;
+    
+    const { data, count } = await supabase
       .from("luxury_items")
-      .select("*")
+      .select("*", { count: "exact" })
       .eq("status", "active")
       .order("created_at", { ascending: false })
-      .limit(20);
+      .range(from, to);
 
     if (data) setLuxuryItems(data);
+    if (count !== null) setLuxuryTotal(count);
   };
 
   const handleSyncSothebys = async () => {
@@ -467,6 +499,13 @@ const Admin = () => {
                         ))
                       )}
                     </div>
+                    <AdminPagination
+                      currentPage={propertiesPage}
+                      totalPages={Math.ceil(propertiesTotal / ITEMS_PER_PAGE)}
+                      totalItems={propertiesTotal}
+                      itemsPerPage={ITEMS_PER_PAGE}
+                      onPageChange={setPropertiesPage}
+                    />
                   </Card>
                 </TabsContent>
 
@@ -647,6 +686,16 @@ const Admin = () => {
                         ))
                       )}
                     </div>
+                    <AdminPagination
+                      currentPage={luxuryPage}
+                      totalPages={Math.ceil(luxuryTotal / ITEMS_PER_PAGE)}
+                      totalItems={luxuryTotal}
+                      itemsPerPage={ITEMS_PER_PAGE}
+                      onPageChange={(page) => {
+                        setLuxuryPage(page);
+                        setSelectedItems(new Set()); // Clear selection on page change
+                      }}
+                    />
                   </Card>
                 </TabsContent>
 
@@ -657,25 +706,39 @@ const Admin = () => {
                       <Button variant="hero">Create Event</Button>
                     </div>
                     <div className="space-y-4">
-                      {events.map((event) => (
-                        <Card key={event.id} className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h3 className="font-semibold mb-1">{event.title}</h3>
-                              <p className="text-sm text-foreground/70 mb-2">{event.description}</p>
-                              <div className="flex items-center gap-4 text-xs text-foreground/60">
-                                <span>{format(new Date(event.event_date), "PPP")}</span>
-                                <span>{event.city}</span>
-                                {event.capacity && <span>{event.capacity} capacity</span>}
+                      {events.length === 0 ? (
+                        <div className="text-center py-12 text-foreground/60">
+                          <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                          <p>No events yet.</p>
+                        </div>
+                      ) : (
+                        events.map((event) => (
+                          <Card key={event.id} className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h3 className="font-semibold mb-1">{event.title}</h3>
+                                <p className="text-sm text-foreground/70 mb-2">{event.description}</p>
+                                <div className="flex items-center gap-4 text-xs text-foreground/60">
+                                  <span>{format(new Date(event.event_date), "PPP")}</span>
+                                  <span>{event.city}</span>
+                                  {event.capacity && <span>{event.capacity} capacity</span>}
+                                </div>
                               </div>
+                              <Button variant="outline" size="sm">
+                                Edit
+                              </Button>
                             </div>
-                            <Button variant="outline" size="sm">
-                              Edit
-                            </Button>
-                          </div>
-                        </Card>
-                      ))}
+                          </Card>
+                        ))
+                      )}
                     </div>
+                    <AdminPagination
+                      currentPage={eventsPage}
+                      totalPages={Math.ceil(eventsTotal / ITEMS_PER_PAGE)}
+                      totalItems={eventsTotal}
+                      itemsPerPage={ITEMS_PER_PAGE}
+                      onPageChange={setEventsPage}
+                    />
                   </Card>
                 </TabsContent>
               </Tabs>

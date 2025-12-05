@@ -13,6 +13,9 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ChatInterface } from "@/components/concierge/ChatInterface";
 import { Separator } from "@/components/ui/separator";
+import { AdminPagination } from "@/components/admin/AdminPagination";
+
+const ITEMS_PER_PAGE = 10;
 
 interface Request {
   id: string;
@@ -42,6 +45,8 @@ export const ConciergeRequestsManager = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
     fetchRequests();
@@ -85,8 +90,19 @@ export const ConciergeRequestsManager = () => {
       );
     }
 
-    setFilteredRequests(filtered);
-  }, [requests, statusFilter, searchTerm]);
+    setTotalItems(filtered.length);
+    
+    // Apply pagination to filtered results
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedRequests = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    
+    setFilteredRequests(paginatedRequests);
+  }, [requests, statusFilter, searchTerm, currentPage]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, searchTerm]);
 
   const fetchRequests = async () => {
     try {
@@ -321,6 +337,15 @@ export const ConciergeRequestsManager = () => {
           ))
         )}
       </div>
+
+      {/* Pagination */}
+      <AdminPagination
+        currentPage={currentPage}
+        totalPages={Math.ceil(totalItems / ITEMS_PER_PAGE)}
+        totalItems={totalItems}
+        itemsPerPage={ITEMS_PER_PAGE}
+        onPageChange={setCurrentPage}
+      />
 
       {/* Chat Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
