@@ -1,7 +1,7 @@
 import { Navigation } from "@/components/layout/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Shield, Users, Calendar, FileText, Settings, Home, RefreshCw, Loader2 } from "lucide-react";
+import { Shield, Users, Calendar, FileText, Settings, Home, RefreshCw, Loader2, ShoppingBag } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
@@ -19,26 +19,31 @@ const Admin = () => {
     requests: 0,
     events: 0,
     properties: 0,
+    luxuryItems: 0,
   });
   const [events, setEvents] = useState<any[]>([]);
   const [dubaiProperties, setDubaiProperties] = useState<any[]>([]);
+  const [luxuryItems, setLuxuryItems] = useState<any[]>([]);
   const [isSyncingSothebys, setIsSyncingSothebys] = useState(false);
   const [isSyncingChristies, setIsSyncingChristies] = useState(false);
   const [isSyncingBayut, setIsSyncingBayut] = useState(false);
+  const [isSyncingSothebysItems, setIsSyncingSothebysItems] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStats();
     fetchEvents();
     fetchDubaiProperties();
+    fetchLuxuryItems();
   }, []);
 
   const fetchStats = async () => {
-    const [membersRes, requestsRes, eventsRes, propertiesRes] = await Promise.all([
+    const [membersRes, requestsRes, eventsRes, propertiesRes, luxuryRes] = await Promise.all([
       supabase.from("profiles").select("id", { count: "exact", head: true }),
       supabase.from("concierge_requests").select("id", { count: "exact", head: true }),
       supabase.from("events").select("id", { count: "exact", head: true }),
       supabase.from("properties").select("id", { count: "exact", head: true }),
+      supabase.from("luxury_items").select("id", { count: "exact", head: true }),
     ]);
 
     setStats({
@@ -46,6 +51,7 @@ const Admin = () => {
       requests: requestsRes.count || 0,
       events: eventsRes.count || 0,
       properties: propertiesRes.count || 0,
+      luxuryItems: luxuryRes.count || 0,
     });
   };
 
@@ -68,6 +74,17 @@ const Admin = () => {
       .limit(20);
 
     if (data) setDubaiProperties(data);
+  };
+
+  const fetchLuxuryItems = async () => {
+    const { data } = await supabase
+      .from("luxury_items")
+      .select("*")
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (data) setLuxuryItems(data);
   };
 
   const handleSyncSothebys = async () => {
@@ -157,6 +174,35 @@ const Admin = () => {
     }
   };
 
+  const handleSyncSothebysItems = async () => {
+    setIsSyncingSothebysItems(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('scrape-sothebys-items', {
+        body: { action: 'sync' }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Sotheby's Items Synced",
+        description: `Scraped ${data.categoriesScraped} categories. Found ${data.itemsFound} items. Inserted: ${data.inserted}, Updated: ${data.updated}`,
+      });
+
+      setLastSync(new Date().toISOString());
+      fetchLuxuryItems();
+      fetchStats();
+    } catch (error: any) {
+      console.error('Sync error:', error);
+      toast({
+        title: "Sync Failed",
+        description: error.message || "Failed to sync Sotheby's items",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncingSothebysItems(false);
+    }
+  };
+
   return (
     <AdminGuard>
       <div className="min-h-screen bg-background">
@@ -174,7 +220,7 @@ const Admin = () => {
               </div>
 
               {/* Stats Overview */}
-              <div className="grid md:grid-cols-4 gap-6 max-w-6xl mx-auto mb-12">
+              <div className="grid md:grid-cols-5 gap-6 max-w-6xl mx-auto mb-12">
                 <Card className="p-6 text-center">
                   <Users className="w-8 h-8 text-primary mx-auto mb-2" />
                   <div className="text-3xl font-bold mb-1">{stats.members}</div>
@@ -195,13 +241,19 @@ const Admin = () => {
                   <div className="text-3xl font-bold mb-1">{stats.properties}</div>
                   <p className="text-sm text-foreground/60">Properties</p>
                 </Card>
+                <Card className="p-6 text-center">
+                  <ShoppingBag className="w-8 h-8 text-primary mx-auto mb-2" />
+                  <div className="text-3xl font-bold mb-1">{stats.luxuryItems}</div>
+                  <p className="text-sm text-foreground/60">Luxury Items</p>
+                </Card>
               </div>
 
               {/* Management Tabs */}
               <Tabs defaultValue="requests" className="max-w-6xl mx-auto">
-                <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-3 mb-8">
-                  <TabsTrigger value="requests">Concierge Requests</TabsTrigger>
+                <TabsList className="grid w-full max-w-4xl mx-auto grid-cols-4 mb-8">
+                  <TabsTrigger value="requests">Concierge</TabsTrigger>
                   <TabsTrigger value="properties">Properties</TabsTrigger>
+                  <TabsTrigger value="luxury">Luxury Items</TabsTrigger>
                   <TabsTrigger value="events">Events</TabsTrigger>
                 </TabsList>
 
@@ -307,6 +359,75 @@ const Admin = () => {
                                   {property.bedrooms && <span>{property.bedrooms} beds</span>}
                                   {property.bathrooms && <span>{property.bathrooms} baths</span>}
                                   {property.sqft && <span>{property.sqft.toLocaleString()} sqft</span>}
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="luxury">
+                  <Card className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h2 className="font-serif text-2xl font-bold">Sotheby's Luxury Items</h2>
+                        <p className="text-sm text-foreground/60 mt-1">
+                          Curated items from Sotheby's Buy Now catalog
+                        </p>
+                      </div>
+                      <Button 
+                        onClick={handleSyncSothebysItems} 
+                        disabled={isSyncingSothebysItems}
+                        variant="hero"
+                        size="sm"
+                      >
+                        {isSyncingSothebysItems ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Syncing...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Sync Sotheby's
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    
+                    <div className="grid gap-4">
+                      {luxuryItems.length === 0 ? (
+                        <div className="text-center py-12 text-foreground/60">
+                          <ShoppingBag className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                          <p>No luxury items yet. Click "Sync Sotheby's" to import from their catalog.</p>
+                        </div>
+                      ) : (
+                        luxuryItems.map((item) => (
+                          <Card key={item.id} className="p-4">
+                            <div className="flex items-start gap-4">
+                              {item.images?.[0] && (
+                                <img 
+                                  src={item.images[0]} 
+                                  alt={item.title}
+                                  className="w-24 h-24 object-cover rounded-lg"
+                                />
+                              )}
+                              <div className="flex-1">
+                                {item.brand && (
+                                  <p className="text-xs text-primary uppercase tracking-wider mb-1">{item.brand}</p>
+                                )}
+                                <h3 className="font-semibold mb-1 line-clamp-1">{item.title}</h3>
+                                <div className="flex items-center gap-4 text-xs text-foreground/60">
+                                  {item.price && (
+                                    <Badge variant="secondary">
+                                      ${item.price.toLocaleString()}
+                                    </Badge>
+                                  )}
+                                  <span>{item.category}</span>
+                                  {item.auction_house && <span>{item.auction_house}</span>}
                                 </div>
                               </div>
                             </div>

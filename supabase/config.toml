@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.scrape-bayut-dubai]
 verify_jwt = false
+
+[functions.scrape-sothebys-items]
+verify_jwt = false
