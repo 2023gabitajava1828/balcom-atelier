@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { getPropertyById as getIdxProperty } from "@/lib/integrations/realtycandy-idx";
+import { ImageGallery } from "@/components/properties/ImageGallery";
 
 interface Property {
   id: string;
@@ -58,6 +59,7 @@ const PropertyDetail = () => {
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -242,12 +244,22 @@ const PropertyDetail = () => {
         </div>
 
         {/* Image Gallery */}
-        <div className="relative aspect-[16/9] md:aspect-[21/9] bg-muted overflow-hidden">
+        <div 
+          className="relative aspect-[16/9] md:aspect-[21/9] bg-muted overflow-hidden cursor-pointer group"
+          onClick={() => setIsGalleryOpen(true)}
+        >
           <img
             src={images[currentImageIndex]}
             alt={property.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
+          
+          {/* Click to expand hint */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+            <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 px-4 py-2 rounded-full">
+              Click to view fullscreen
+            </span>
+          </div>
           
           {/* Price Badge */}
           <div className="absolute top-4 right-4">
@@ -498,6 +510,16 @@ const PropertyDetail = () => {
 
       <Footer className="hidden md:block" />
       <BottomTabs />
+
+      {/* Fullscreen Image Gallery */}
+      <ImageGallery
+        images={images}
+        initialIndex={currentImageIndex}
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        onShare={handleShare}
+        title={property.title}
+      />
     </div>
   );
 };
