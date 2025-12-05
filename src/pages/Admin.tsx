@@ -1,7 +1,7 @@
 import { Navigation } from "@/components/layout/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Shield, Users, Calendar, FileText, Settings, Home, RefreshCw, Loader2, ShoppingBag, Trash2, Sparkles } from "lucide-react";
+import { Shield, Users, Calendar, FileText, Settings, Home, RefreshCw, Loader2, ShoppingBag, Trash2, Sparkles, Pencil } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { ConciergeRequestsManager } from "@/components/admin/ConciergeRequestsManager";
 import { AddPropertyModal } from "@/components/admin/AddPropertyModal";
 import { AddEventModal } from "@/components/admin/AddEventModal";
+import { EditEventModal } from "@/components/admin/EditEventModal";
 import { AdminPagination } from "@/components/admin/AdminPagination";
 import { useToast } from "@/hooks/use-toast";
 
@@ -39,6 +40,9 @@ const Admin = () => {
   const [lastSync, setLastSync] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState("requests");
+  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [isEditEventOpen, setIsEditEventOpen] = useState(false);
   
   // Pagination state
   const [propertiesPage, setPropertiesPage] = useState(1);
@@ -424,22 +428,34 @@ const Admin = () => {
                   <div className="text-3xl font-bold mb-1">{stats.members}</div>
                   <p className="text-sm text-foreground/60">Total Members</p>
                 </Card>
-                <Card className="p-6 text-center">
+                <Card 
+                  className="p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                  onClick={() => setActiveTab("requests")}
+                >
                   <FileText className="w-8 h-8 text-primary mx-auto mb-2" />
                   <div className="text-3xl font-bold mb-1">{stats.requests}</div>
                   <p className="text-sm text-foreground/60">Concierge Requests</p>
                 </Card>
-                <Card className="p-6 text-center">
+                <Card 
+                  className="p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                  onClick={() => setActiveTab("events")}
+                >
                   <Calendar className="w-8 h-8 text-primary mx-auto mb-2" />
                   <div className="text-3xl font-bold mb-1">{stats.events}</div>
                   <p className="text-sm text-foreground/60">Events</p>
                 </Card>
-                <Card className="p-6 text-center">
+                <Card 
+                  className="p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                  onClick={() => setActiveTab("properties")}
+                >
                   <Home className="w-8 h-8 text-primary mx-auto mb-2" />
                   <div className="text-3xl font-bold mb-1">{stats.properties}</div>
                   <p className="text-sm text-foreground/60">Properties</p>
                 </Card>
-                <Card className="p-6 text-center">
+                <Card 
+                  className="p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                  onClick={() => setActiveTab("luxury")}
+                >
                   <ShoppingBag className="w-8 h-8 text-primary mx-auto mb-2" />
                   <div className="text-3xl font-bold mb-1">{stats.luxuryItems}</div>
                   <p className="text-sm text-foreground/60">Luxury Items</p>
@@ -447,7 +463,7 @@ const Admin = () => {
               </div>
 
               {/* Management Tabs */}
-              <Tabs defaultValue="requests" className="max-w-6xl mx-auto">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-6xl mx-auto">
                 <TabsList className="grid w-full max-w-4xl mx-auto grid-cols-4 mb-8">
                   <TabsTrigger value="requests">Concierge</TabsTrigger>
                   <TabsTrigger value="properties">Properties</TabsTrigger>
@@ -818,34 +834,46 @@ const Admin = () => {
                                     <h3 className="font-semibold mb-1">{event.title}</h3>
                                     <p className="text-sm text-foreground/70 line-clamp-2 mb-2">{event.description}</p>
                                   </div>
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                      >
-                                        <Trash2 className="w-4 h-4" />
-                                      </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete Event</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          Are you sure you want to delete "{event.title}"? This action cannot be undone.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                          onClick={() => handleDeleteEvent(event.id, event.title)}
-                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => {
+                                        setEditingEvent(event);
+                                        setIsEditEventOpen(true);
+                                      }}
+                                    >
+                                      <Pencil className="w-4 h-4" />
+                                    </Button>
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                         >
-                                          Delete
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
+                                          <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Delete Event</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Are you sure you want to delete "{event.title}"? This action cannot be undone.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                          <AlertDialogAction
+                                            onClick={() => handleDeleteEvent(event.id, event.title)}
+                                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                          >
+                                            Delete
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  </div>
                                 </div>
                                 <div className="flex items-center gap-3 text-xs text-foreground/60 flex-wrap">
                                   <span className="font-medium">{format(new Date(event.event_date), "PPP 'at' p")}</span>
@@ -891,6 +919,17 @@ const Admin = () => {
           </section>
         </main>
       </div>
+      
+      {/* Edit Event Modal */}
+      <EditEventModal
+        event={editingEvent}
+        open={isEditEventOpen}
+        onOpenChange={setIsEditEventOpen}
+        onSuccess={() => {
+          fetchEvents();
+          fetchStats();
+        }}
+      />
     </AdminGuard>
   );
 };
