@@ -2,6 +2,7 @@
  * RealtyCandy IDX Integration Adapter
  * 
  * Fetch luxury property listings from live FMLS feed via edge function.
+ * Supports: featured listings, saved search links, full property images
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +27,14 @@ export interface Property {
   features: string[];
   status: string;
   mlsNumber?: string;
+  yearBuilt?: number | null;
+  lotSize?: string;
+}
+
+export interface SavedLink {
+  id: string;
+  linkName: string;
+  linkTitle: string;
 }
 
 export interface PropertySearchParams {
@@ -40,6 +49,7 @@ export interface PropertySearchParams {
   lifestyleTags?: string[];
   limit?: number;
   offset?: number;
+  savedLinkId?: string;
 }
 
 /**
@@ -51,6 +61,8 @@ export async function searchProperties(params: PropertySearchParams = {}): Promi
   try {
     const { data, error } = await supabase.functions.invoke('idx-properties', {
       body: {
+        action: params.savedLinkId ? 'getSavedLinkResults' : 'search',
+        savedLinkId: params.savedLinkId,
         city: params.city || 'Atlanta',
         region: params.region || 'Georgia',
         priceMin: params.priceMin,
@@ -68,7 +80,7 @@ export async function searchProperties(params: PropertySearchParams = {}): Promi
       return [];
     }
 
-    console.log('[IDX] Received response:', data);
+    console.log('[IDX] Received', data?.properties?.length || 0, 'properties');
     return data?.properties || [];
   } catch (error) {
     console.error('[IDX] Search failed:', error);
@@ -77,12 +89,41 @@ export async function searchProperties(params: PropertySearchParams = {}): Promi
 }
 
 /**
- * Get a single property by ID (searches from current results)
+ * Get all saved search links from IDX account
+ */
+export async function getSavedLinks(): Promise<SavedLink[]> {
+  console.log('[IDX] Fetching saved links');
+  
+  try {
+    const { data, error } = await supabase.functions.invoke('idx-properties', {
+      body: { action: 'getSavedLinks' },
+    });
+
+    if (error) {
+      console.error('[IDX] Failed to fetch saved links:', error);
+      return [];
+    }
+
+    console.log('[IDX] Found', data?.savedLinks?.length || 0, 'saved links');
+    return data?.savedLinks || [];
+  } catch (error) {
+    console.error('[IDX] Saved links failed:', error);
+    return [];
+  }
+}
+
+/**
+ * Get properties from a specific saved link
+ */
+export async function getPropertiesFromSavedLink(savedLinkId: string): Promise<Property[]> {
+  return searchProperties({ savedLinkId });
+}
+
+/**
+ * Get a single property by ID
  */
 export async function getPropertyById(id: string): Promise<Property | null> {
   console.log('[IDX] Getting property:', id);
-  
-  // For now, search and find - in production you'd have a dedicated endpoint
   const properties = await searchProperties({ limit: 100 });
   return properties.find(p => p.id === id) || null;
 }
@@ -91,7 +132,7 @@ export async function getPropertyById(id: string): Promise<Property | null> {
  * Get available lifestyle tags
  */
 export function getLifestyleTags(): string[] {
-  return ['beach', 'golf', 'city', 'desert', 'luxury', 'waterfront', 'gated'];
+  return ['luxury', 'waterfront', 'pool', 'golf', 'ocean-view', 'ultra-luxury'];
 }
 
 /**

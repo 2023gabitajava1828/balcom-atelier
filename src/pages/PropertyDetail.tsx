@@ -207,6 +207,13 @@ const PropertyDetail = () => {
             className="w-full h-full object-cover"
           />
           
+          {/* Price Badge */}
+          <div className="absolute top-4 right-4">
+            <Badge className="bg-primary text-primary-foreground text-lg px-4 py-2 font-semibold">
+              {formatPrice(property.price)}
+            </Badge>
+          </div>
+          
           {/* Image Navigation */}
           {images.length > 1 && (
             <>
@@ -223,28 +230,40 @@ const PropertyDetail = () => {
                 <ChevronRight className="w-5 h-5" />
               </button>
               
-              {/* Image Indicators */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                {images.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentImageIndex(idx)}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      idx === currentImageIndex ? "bg-primary" : "bg-background/60"
-                    }`}
-                  />
-                ))}
+              {/* Image Counter */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full">
+                <span className="text-sm font-medium">
+                  {currentImageIndex + 1} / {images.length}
+                </span>
               </div>
             </>
           )}
-
-          {/* Price Badge */}
-          <div className="absolute top-4 right-4">
-            <Badge className="bg-primary text-primary-foreground text-lg px-4 py-2 font-semibold">
-              {formatPrice(property.price)}
-            </Badge>
-          </div>
         </div>
+
+        {/* Thumbnail Gallery */}
+        {images.length > 1 && (
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentImageIndex(idx)}
+                  className={`flex-shrink-0 w-20 h-16 md:w-24 md:h-18 rounded-lg overflow-hidden border-2 transition-all ${
+                    idx === currentImageIndex 
+                      ? "border-primary ring-2 ring-primary/30" 
+                      : "border-transparent opacity-70 hover:opacity-100"
+                  }`}
+                >
+                  <img
+                    src={img}
+                    alt={`View ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Content */}
         <div className="container mx-auto px-4 py-8">
