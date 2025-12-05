@@ -112,42 +112,131 @@ function extractLifestyleTags(features: string[], description: string): string[]
   return tags.length > 0 ? tags : ['Luxury'];
 }
 
-async function mapPropertyUrls(): Promise<string[]> {
-  console.log('Mapping property URLs from sothebysrealty.ae...');
+// Scrape a listing page and extract property URLs
+async function scrapeListingPage(pageUrl: string): Promise<string[]> {
+  console.log(`Scraping listing page: ${pageUrl}`);
   
-  const response = await fetch('https://api.firecrawl.dev/v1/map', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${FIRECRAWL_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      url: 'https://sothebysrealty.ae/properties/buy',
-      search: 'dubai',
-      limit: 500,
-    }),
-  });
+  try {
+    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${FIRECRAWL_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: pageUrl,
+        formats: ['html', 'links'],
+        waitFor: 3000,
+      }),
+    });
 
-  if (!response.ok) {
-    const error = await response.text();
-    console.error('Firecrawl map error:', error);
-    throw new Error(`Failed to map URLs: ${error}`);
+    if (!response.ok) {
+      console.error(`Failed to scrape listing page: ${pageUrl}`);
+      return [];
+    }
+
+    const data = await response.json();
+    const links = data.data?.links || [];
+    const html = data.data?.html || '';
+    
+    // Extract property URLs from links
+    const propertyUrls = links.filter((url: string) => 
+      url.includes('/properties/buy/') && 
+      url.includes('-dubai-') &&
+      !url.endsWith('/buy/') &&
+      !url.includes('?page=') &&
+      url.split('/').length > 5
+    );
+    
+    // Also extract from HTML href attributes for better coverage
+    const hrefMatches = html.matchAll(/href=["'](\/properties\/buy\/[^"']+dubai[^"']+)["']/gi);
+    for (const match of hrefMatches) {
+      const fullUrl = `https://sothebysrealty.ae${match[1]}`;
+      if (!propertyUrls.includes(fullUrl) && fullUrl.includes('-dubai-')) {
+        propertyUrls.push(fullUrl);
+      }
+    }
+    
+    console.log(`Found ${propertyUrls.length} property URLs from ${pageUrl}`);
+    return propertyUrls;
+  } catch (error) {
+    console.error(`Error scraping listing page ${pageUrl}:`, error);
+    return [];
   }
+}
 
-  const data = await response.json();
-  console.log('Map response:', JSON.stringify(data).slice(0, 500));
+async function mapPropertyUrls(): Promise<string[]> {
+  console.log('Mapping property URLs from sothebysrealty.ae with pagination...');
   
-  // Filter to only Dubai property detail pages
-  const propertyUrls = (data.links || []).filter((url: string) => 
-    url.includes('/properties/buy/') && 
-    url.includes('-dubai-') &&
-    !url.endsWith('/buy/') &&
-    !url.includes('?') &&
-    url.split('/').length > 5
-  );
+  const allPropertyUrls: Set<string> = new Set();
   
-  console.log(`Found ${propertyUrls.length} Dubai property URLs`);
-  return propertyUrls.slice(0, 100); // Process up to 100 Dubai properties
+  // Dubai listing pages with different sorting and pagination
+  const listingPages = [
+    'https://sothebysrealty.ae/properties/buy/in-dubai',
+    'https://sothebysrealty.ae/properties/buy/in-dubai?page=2',
+    'https://sothebysrealty.ae/properties/buy/in-dubai?page=3',
+    'https://sothebysrealty.ae/properties/buy/in-dubai?page=4',
+    'https://sothebysrealty.ae/properties/buy/in-dubai?page=5',
+    'https://sothebysrealty.ae/properties/buy/in-dubai?sort=price-desc',
+    'https://sothebysrealty.ae/properties/buy/in-dubai?sort=price-asc',
+    'https://sothebysrealty.ae/properties/buy/villa-in-dubai',
+    'https://sothebysrealty.ae/properties/buy/apartment-in-dubai',
+    'https://sothebysrealty.ae/properties/buy/penthouse-in-dubai',
+    'https://sothebysrealty.ae/properties/buy/in-palm-jumeirah-dubai',
+    'https://sothebysrealty.ae/properties/buy/in-emirates-hills-dubai',
+    'https://sothebysrealty.ae/properties/buy/in-downtown-dubai-dubai',
+    'https://sothebysrealty.ae/properties/buy/in-dubai-hills-estate-dubai',
+  ];
+  
+  // Scrape each listing page with delay to avoid rate limits
+  for (const pageUrl of listingPages) {
+    const urls = await scrapeListingPage(pageUrl);
+    urls.forEach(url => allPropertyUrls.add(url));
+    
+    // Delay between listing page requests
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Stop if we have enough URLs
+    if (allPropertyUrls.size >= 150) {
+      console.log('Reached 150 URLs, stopping pagination');
+      break;
+    }
+  }
+  
+  // Also use Firecrawl map as backup
+  console.log('Also using Firecrawl map API for additional URLs...');
+  try {
+    const mapResponse = await fetch('https://api.firecrawl.dev/v1/map', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${FIRECRAWL_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: 'https://sothebysrealty.ae/properties/buy/in-dubai',
+        search: 'villa apartment penthouse',
+        limit: 500,
+      }),
+    });
+
+    if (mapResponse.ok) {
+      const mapData = await mapResponse.json();
+      const mapUrls = (mapData.links || []).filter((url: string) => 
+        url.includes('/properties/buy/') && 
+        url.includes('-dubai-') &&
+        !url.endsWith('/buy/') &&
+        !url.includes('?') &&
+        url.split('/').length > 5
+      );
+      mapUrls.forEach((url: string) => allPropertyUrls.add(url));
+    }
+  } catch (error) {
+    console.error('Map API error:', error);
+  }
+  
+  const uniqueUrls = Array.from(allPropertyUrls);
+  console.log(`Found ${uniqueUrls.length} unique Dubai property URLs total`);
+  return uniqueUrls.slice(0, 150); // Process up to 150 properties
 }
 
 async function scrapePropertyPage(url: string): Promise<PropertyData | null> {
