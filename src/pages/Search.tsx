@@ -122,9 +122,10 @@ const Search = () => {
     const currentOffset = reset ? 0 : offset;
     
     try {
-      // For Atlanta, use live IDX feed
+      // For Atlanta, use live IDX feed from saved link
       if (activeMarket === "atlanta") {
         const idxProperties = await searchIDXProperties({
+          savedLinkId: "13759", // Atlanta luxury saved search
           city: "Atlanta",
           region: "Georgia",
           priceMin: activeFilters.minPrice ? parseFloat(activeFilters.minPrice) : undefined,
