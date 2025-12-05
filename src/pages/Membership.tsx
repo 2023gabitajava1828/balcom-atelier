@@ -335,9 +335,9 @@ const Membership = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="pt-20 pb-24 md:pb-0">
-        <section className="py-12 md:py-20">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="page-main-compact">
+        <section className="section">
+          <div className="content-narrow">
             {/* Header */}
             <div className="text-center mb-8">
               <h1 className="font-serif text-3xl md:text-5xl font-bold mb-4">

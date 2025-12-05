@@ -106,13 +106,13 @@ const Events = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="pt-20 pb-24 md:pb-8">
+      <main className="page-main">
         {/* Hero Section */}
-        <section className="relative py-12 md:py-20 overflow-hidden">
+        <section className="section-hero relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent opacity-50" />
           
-          <div className="container relative mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="content-container relative text-center">
             <div className="flex justify-center gap-3 mb-6">
               <Calendar className="w-10 h-10 text-primary" />
               <Sparkles className="w-10 h-10 text-primary" />
@@ -127,7 +127,7 @@ const Events = () => {
           </div>
         </section>
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="section content-container">
           {/* Events Grid */}
           {loading ? (
             <SkeletonGrid 
@@ -252,16 +252,16 @@ const Events = () => {
               })}
             </div>
           )}
+        </section>
 
-          {/* Results count */}
-          {!loading && events.length > 0 && (
-            <div className="mt-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                Showing {events.length} upcoming {events.length === 1 ? "event" : "events"}
-              </p>
-            </div>
-          )}
-        </div>
+        {/* Results count */}
+        {!loading && events.length > 0 && (
+          <div className="section-xs content-container text-center">
+            <p className="text-sm text-muted-foreground">
+              Showing {events.length} upcoming {events.length === 1 ? "event" : "events"}
+            </p>
+          </div>
+        )}
       </main>
       <Footer className="hidden md:block" />
       <BottomTabs />

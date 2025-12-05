@@ -51,8 +51,8 @@ export const FeaturedAuctions = () => {
 
   if (loading) {
     return (
-      <section className="py-12 md:py-16 bg-muted/20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="section-sm bg-muted/20">
+        <div className="content-container">
           <div className="flex items-center justify-between mb-8">
             <Skeleton className="h-8 w-48" />
             <Skeleton className="h-10 w-24" />
@@ -74,8 +74,8 @@ export const FeaturedAuctions = () => {
   if (items.length === 0) return null;
 
   return (
-    <section className="py-12 md:py-16 bg-muted/20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="section-sm bg-muted/20">
+      <div className="content-container">
         {/* Header */}
         <ScrollReveal variant="fade-up">
           <div className="flex items-center justify-between mb-8">

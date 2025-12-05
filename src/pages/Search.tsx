@@ -397,7 +397,7 @@ const Search = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="pt-20 pb-24 md:pb-24">
+      <main className="page-main">
         {/* Header */}
         <div className="border-b border-border/50 bg-card/50">
           <div className="container mx-auto px-4 py-6">
