@@ -1,13 +1,17 @@
 import { useParams, Navigate, Link } from "react-router-dom";
 import { Navigation } from "@/components/layout/Navigation";
 import { Footer } from "@/components/layout/Footer";
+import { BottomTabs } from "@/components/layout/BottomTabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PropertyCard } from "@/components/properties/PropertyCard";
 import { PropertyFilters, PropertySearchFilters } from "@/components/properties/PropertyFilters";
-import { ArrowLeft, MapPin, TrendingUp, Building2, Award, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { PropertyCardSkeleton, SkeletonGrid } from "@/components/ui/skeletons";
+import { InlineError } from "@/components/ui/error-fallback";
+import { NoPropertiesFound } from "@/components/ui/empty-state";
+import { ArrowLeft, MapPin, TrendingUp, Building2, Award } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { searchProperties } from "@/lib/integrations/realtycandy-idx";
 import atlantaImg from "@/assets/market-atlanta.jpg";
@@ -64,6 +68,7 @@ const CityMarket = () => {
   const [properties, setProperties] = useState<any[]>([]);
   const [savedProperties, setSavedProperties] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [filters, setFilters] = useState<PropertySearchFilters>({
     search: "",
     city: "",
@@ -75,14 +80,9 @@ const CityMarket = () => {
 
   const cityInfo = city ? cityData[city as keyof typeof cityData] : null;
 
-  useEffect(() => {
-    if (city) {
-      fetchProperties();
-    }
-  }, [city, filters]);
-
-  const fetchProperties = async () => {
+  const fetchProperties = useCallback(async () => {
     setLoading(true);
+    setError(false);
     
     try {
       if (cityInfo?.isIdx) {
@@ -135,16 +135,24 @@ const CityMarket = () => {
           query = query.gte("bedrooms", parseInt(filters.bedrooms));
         }
 
-        const { data } = await query.order("price", { ascending: false });
+        const { data, error: dbError } = await query.order("price", { ascending: false });
+        if (dbError) throw dbError;
         setProperties(data || []);
       }
-    } catch (error) {
-      console.error("Error fetching properties:", error);
+    } catch (err) {
+      console.error("Error fetching properties:", err);
+      setError(true);
       setProperties([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [city, cityInfo, filters]);
+
+  useEffect(() => {
+    if (city) {
+      fetchProperties();
+    }
+  }, [city, filters, fetchProperties]);
 
   const handleSave = async (propertyId: string) => {
     // Implement save functionality similar to RealEstate page
@@ -249,33 +257,33 @@ const CityMarket = () => {
           <PropertyFilters onSearch={setFilters} />
 
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
+            <SkeletonGrid 
+              count={6} 
+              Component={PropertyCardSkeleton} 
+              className="md:grid-cols-2 lg:grid-cols-3"
+            />
+          ) : error ? (
+            <InlineError 
+              onRetry={fetchProperties}
+              message={`Unable to load ${cityInfo.name} properties. Please try again.`}
+            />
           ) : properties.length === 0 ? (
-            <Card className="p-12 text-center">
-              <Building2 className="w-12 h-12 mx-auto mb-4 text-primary/50" />
-              <h3 className="font-semibold text-lg mb-2">No Properties Found</h3>
-              <p className="text-foreground/60 mb-4">
-                We're currently updating our {cityInfo.name} inventory. Check back soon or adjust your filters.
-              </p>
-              <Button variant="outline" onClick={() => setFilters({
+            <NoPropertiesFound 
+              onClearFilters={() => setFilters({
                 search: "",
                 city: "",
                 minPrice: "",
                 maxPrice: "",
                 bedrooms: "",
                 propertyType: "",
-              })}>
-                Reset Filters
-              </Button>
-            </Card>
+              })}
+            />
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {properties.map((property) => (
                 <Link 
                   key={property.id} 
-                  to={property.isIdx ? `/property/idx-${property.id}` : `/property/${property.id}`}
+                  to={property.isIdx ? `/property/${property.id}` : `/property/${property.id}`}
                 >
                   <PropertyCard 
                     property={property}
@@ -288,7 +296,8 @@ const CityMarket = () => {
           )}
         </div>
       </section>
-      <Footer />
+      <Footer className="hidden md:block" />
+      <BottomTabs />
     </div>
   );
 };

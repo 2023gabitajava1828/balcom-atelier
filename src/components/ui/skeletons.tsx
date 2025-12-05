@@ -286,4 +286,130 @@ export function ActivityCardSkeleton() {
   );
 }
 
+// Property Detail Page Skeleton
+export function PropertyDetailSkeleton() {
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Image Gallery Skeleton */}
+      <Skeleton className="h-[50vh] w-full" />
+      
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Title & Address */}
+            <div className="space-y-3">
+              <Skeleton className="h-10 w-3/4" />
+              <Skeleton className="h-5 w-1/2" />
+            </div>
+            
+            {/* Stats Row */}
+            <div className="flex flex-wrap gap-6">
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-6 w-28" />
+            </div>
+            
+            {/* Description */}
+            <div className="space-y-3 pt-4">
+              <Skeleton className="h-7 w-32" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+            
+            {/* Features */}
+            <div className="space-y-3 pt-4">
+              <Skeleton className="h-7 w-40" />
+              <div className="grid grid-cols-2 gap-3">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <Skeleton key={i} className="h-5 w-full" />
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Price Card */}
+            <div className="bg-card rounded-xl p-6 border border-border space-y-4">
+              <Skeleton className="h-10 w-40" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-12 w-full rounded-md" />
+              <Skeleton className="h-12 w-full rounded-md" />
+            </div>
+            
+            {/* Details Card */}
+            <div className="bg-card rounded-xl p-6 border border-border space-y-4">
+              <Skeleton className="h-6 w-32" />
+              <div className="space-y-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex justify-between">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Full Page Loading Skeleton
+export function PageLoadingSkeleton() {
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header skeleton */}
+      <div className="h-16 border-b border-border flex items-center px-6">
+        <Skeleton className="h-8 w-32" />
+        <div className="flex-1" />
+        <div className="flex gap-4">
+          <Skeleton className="h-8 w-20" />
+          <Skeleton className="h-8 w-20" />
+          <Skeleton className="h-8 w-20" />
+        </div>
+      </div>
+      
+      {/* Content skeleton */}
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-5 w-96" />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <PropertyCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Section Loading Skeleton
+export function SectionSkeleton({ title = true }: { title?: boolean }) {
+  return (
+    <div className="space-y-6">
+      {title && (
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-72" />
+        </div>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <PropertyCardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export { Skeleton };
