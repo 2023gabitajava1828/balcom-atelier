@@ -5,6 +5,7 @@ import { Shield, Users, Calendar, FileText, Settings, Home, RefreshCw, Loader2, 
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,8 @@ const Admin = () => {
   const [isSyncingSothebysItems, setIsSyncingSothebysItems] = useState(false);
   const [isSyncingWithDetails, setIsSyncingWithDetails] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   useEffect(() => {
     fetchStats();
@@ -232,6 +235,11 @@ const Admin = () => {
         description: `"${itemTitle}" has been removed.`,
       });
 
+      setSelectedItems(prev => {
+        const next = new Set(prev);
+        next.delete(itemId);
+        return next;
+      });
       fetchLuxuryItems();
       fetchStats();
     } catch (error: any) {
@@ -241,6 +249,58 @@ const Admin = () => {
         description: error.message || "Failed to delete item",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedItems.size === 0) return;
+    
+    setIsBulkDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("luxury_items")
+        .delete()
+        .in("id", Array.from(selectedItems));
+
+      if (error) throw error;
+
+      toast({
+        title: "Items Deleted",
+        description: `${selectedItems.size} items have been removed.`,
+      });
+
+      setSelectedItems(new Set());
+      fetchLuxuryItems();
+      fetchStats();
+    } catch (error: any) {
+      console.error('Bulk delete error:', error);
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete items",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+  const toggleSelectItem = (itemId: string) => {
+    setSelectedItems(prev => {
+      const next = new Set(prev);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedItems.size === luxuryItems.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(luxuryItems.map(item => item.id)));
     }
   };
 
@@ -458,6 +518,64 @@ const Admin = () => {
                         </Button>
                       </div>
                     </div>
+
+                    {/* Bulk Actions Bar */}
+                    {luxuryItems.length > 0 && (
+                      <div className="flex items-center justify-between p-3 mb-4 bg-muted/50 rounded-lg border">
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            checked={selectedItems.size === luxuryItems.length && luxuryItems.length > 0}
+                            onCheckedChange={toggleSelectAll}
+                          />
+                          <span className="text-sm text-foreground/70">
+                            {selectedItems.size > 0 
+                              ? `${selectedItems.size} of ${luxuryItems.length} selected`
+                              : `Select all (${luxuryItems.length} items)`
+                            }
+                          </span>
+                        </div>
+                        {selectedItems.size > 0 && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                disabled={isBulkDeleting}
+                              >
+                                {isBulkDeleting ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Deleting...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Delete {selectedItems.size} Items
+                                  </>
+                                )}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete {selectedItems.size} Items</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete {selectedItems.size} selected items? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={handleBulkDelete}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete All
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
+                    )}
                     
                     <div className="grid gap-4">
                       {luxuryItems.length === 0 ? (
@@ -467,8 +585,13 @@ const Admin = () => {
                         </div>
                       ) : (
                         luxuryItems.map((item) => (
-                          <Card key={item.id} className="p-4">
+                          <Card key={item.id} className={`p-4 transition-colors ${selectedItems.has(item.id) ? 'bg-primary/5 border-primary/30' : ''}`}>
                             <div className="flex items-start gap-4">
+                              <Checkbox
+                                checked={selectedItems.has(item.id)}
+                                onCheckedChange={() => toggleSelectItem(item.id)}
+                                className="mt-1"
+                              />
                               {item.images?.[0] && (
                                 <img 
                                   src={item.images[0]} 
