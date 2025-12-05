@@ -103,7 +103,7 @@ export const Footer = ({ className }: FooterProps) => {
           <img 
             src={sothebysLogo} 
             alt="Sotheby's International Realty" 
-            className="h-8 w-auto object-contain opacity-70"
+            className="h-8 w-auto object-contain opacity-70 brightness-0 invert"
           />
           <p className="text-center text-xs text-muted-foreground/70">
             Each office is independently owned and operated. Sotheby's International Realty® is a registered trademark licensed to Sotheby's International Realty Affiliates LLC.
