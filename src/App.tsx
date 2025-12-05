@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SplashScreen } from "@/components/layout/SplashScreen";
+import { queryClient } from "@/lib/queryClient";
 import Index from "./pages/Index";
 import RealEstate from "./pages/RealEstate";
 import Search from "./pages/Search";
@@ -24,8 +25,6 @@ import Auth from "./pages/Auth";
 import Sports from "./pages/Sports";
 import AthletePortal from "./pages/AthletePortal";
 import NotFound from "./pages/NotFound";
-
-const queryClient = new QueryClient();
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(() => {

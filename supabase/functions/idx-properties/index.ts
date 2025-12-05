@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,12 +16,19 @@ interface PropertySearchParams {
   propertyType?: string;
   limit?: number;
   offset?: number;
-  savedLinkId?: string; // For fetching from saved search links
-  action?: 'search' | 'getSavedLinks' | 'getSavedLinkResults';
+  savedLinkId?: string;
+  action?: 'search' | 'getSavedLinks' | 'getSavedLinkResults' | 'getPropertyById';
+  propertyId?: string;
+}
+
+// Initialize Supabase client for caching
+function getSupabaseClient() {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  return createClient(supabaseUrl, supabaseKey);
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -45,7 +53,11 @@ serve(async (req) => {
       'outputtype': 'json',
     };
 
-    // Handle different actions
+    // NEW: Get single property by ID from cache
+    if (params.action === 'getPropertyById' && params.propertyId) {
+      return await getPropertyFromCache(params.propertyId, corsHeaders);
+    }
+
     if (params.action === 'getSavedLinks') {
       return await getSavedLinks(headers, corsHeaders);
     }
@@ -54,7 +66,6 @@ serve(async (req) => {
       return await getSavedLinkResults(params.savedLinkId, headers, corsHeaders);
     }
 
-    // Default: search properties
     return await searchProperties(params, headers, corsHeaders);
 
   } catch (err) {
@@ -67,7 +78,76 @@ serve(async (req) => {
   }
 });
 
-// Get all saved links from IDX account
+// NEW: Get single property from cache
+async function getPropertyFromCache(propertyId: string, corsHeaders: Record<string, string>) {
+  console.log('[IDX] Getting property from cache:', propertyId);
+  
+  const supabase = getSupabaseClient();
+  
+  // Check cache first
+  const { data: cached } = await supabase
+    .from('idx_property_cache')
+    .select('property_data, expires_at')
+    .eq('id', propertyId)
+    .single();
+  
+  if (cached && new Date(cached.expires_at) > new Date()) {
+    console.log('[IDX] Cache hit for property:', propertyId);
+    return new Response(
+      JSON.stringify({ property: cached.property_data }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+  
+  console.log('[IDX] Cache miss for property:', propertyId);
+  return new Response(
+    JSON.stringify({ property: null }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
+
+// Cache properties to Supabase
+async function cacheProperties(properties: Record<string, unknown>[]) {
+  if (properties.length === 0) return;
+  
+  const supabase = getSupabaseClient();
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 minutes
+  
+  const cacheEntries = properties.map(p => ({
+    id: String(p.id),
+    property_data: p,
+    cached_at: new Date().toISOString(),
+    expires_at: expiresAt,
+  }));
+  
+  // Upsert in batches of 100
+  for (let i = 0; i < cacheEntries.length; i += 100) {
+    const batch = cacheEntries.slice(i, i + 100);
+    const { error } = await supabase
+      .from('idx_property_cache')
+      .upsert(batch, { onConflict: 'id' });
+    
+    if (error) {
+      console.error('[IDX] Cache write error:', error.message);
+    }
+  }
+  
+  console.log('[IDX] Cached', properties.length, 'properties');
+}
+
+// Clean expired cache entries (background task)
+async function cleanExpiredCache() {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase
+    .from('idx_property_cache')
+    .delete()
+    .lt('expires_at', new Date().toISOString());
+  
+  if (error) {
+    console.error('[IDX] Cache cleanup error:', error.message);
+  }
+}
+
 async function getSavedLinks(headers: Record<string, string>, corsHeaders: Record<string, string>) {
   console.log('[IDX] Fetching saved links');
   
@@ -86,9 +166,7 @@ async function getSavedLinks(headers: Record<string, string>, corsHeaders: Recor
   }
 
   const data = await response.json();
-  console.log('[IDX] Saved links response:', typeof data);
   
-  // Parse saved links - can be array or object with numeric keys
   let savedLinks: Array<{ id: string; linkName: string; linkTitle: string }> = [];
   
   if (Array.isArray(data)) {
@@ -113,7 +191,6 @@ async function getSavedLinks(headers: Record<string, string>, corsHeaders: Recor
   );
 }
 
-// Get properties from a specific saved link
 async function getSavedLinkResults(savedLinkId: string, headers: Record<string, string>, corsHeaders: Record<string, string>) {
   console.log('[IDX] Fetching results for saved link:', savedLinkId);
   
@@ -135,7 +212,6 @@ async function getSavedLinkResults(savedLinkId: string, headers: Record<string, 
   return processResponse(data, corsHeaders);
 }
 
-// Search properties (featured or listings)
 async function searchProperties(params: PropertySearchParams, headers: Record<string, string>, corsHeaders: Record<string, string>) {
   const queryParams = new URLSearchParams();
   if (params.city) queryParams.append('cityName', params.city);
@@ -152,13 +228,10 @@ async function searchProperties(params: PropertySearchParams, headers: Record<st
 
   const response = await fetch(apiUrl, { method: 'GET', headers });
 
-  console.log('[IDX] Response status:', response.status);
-
   if (!response.ok) {
     const errorText = await response.text();
     console.error('[IDX] API error:', response.status, errorText.substring(0, 500));
     
-    // Try alternative endpoint
     if (response.status === 404 || response.status === 403) {
       console.log('[IDX] Trying alternative endpoint: clients/listing');
       const altResponse = await fetch(`https://api.idxbroker.com/clients/listing${queryString}`, {
@@ -179,12 +252,10 @@ async function searchProperties(params: PropertySearchParams, headers: Record<st
   }
 
   const data = await response.json();
-  console.log('[IDX] Received data type:', typeof data, Array.isArray(data) ? `array[${data.length}]` : 'object');
-  
   return processResponse(data, corsHeaders);
 }
 
-function processResponse(data: unknown, corsHeaders: Record<string, string>) {
+async function processResponse(data: unknown, corsHeaders: Record<string, string>) {
   let listings: Record<string, unknown>[] = [];
   
   if (Array.isArray(data)) {
@@ -202,15 +273,11 @@ function processResponse(data: unknown, corsHeaders: Record<string, string>) {
   
   console.log('[IDX] Processing', listings.length, 'raw listings');
 
-  // Status values that indicate SOLD or inactive listings - filter these OUT
   const soldStatuses = ['sold', 'closed', 'pending', 'expired', 'withdrawn', 'cancelled', 'off market'];
   
-  // Filter to only active/available listings (exclude sold, pending, etc.)
   const activeListings = listings.filter((listing) => {
     const status = String(listing.propStatus || listing.status || listing.listingStatus || '').toLowerCase();
     const isSold = soldStatuses.some(s => status.includes(s));
-    
-    // Also check for sold price indicators
     const hasSoldPrice = listing.soldPrice && parseFloat(String(listing.soldPrice)) > 0;
     const hasSoldDate = listing.soldDate || listing.closeDate;
     
@@ -221,38 +288,11 @@ function processResponse(data: unknown, corsHeaders: Record<string, string>) {
     return true;
   });
 
-  console.log('[IDX] Active listings after filtering:', activeListings.length);
-
-  // Log first listing structure for debugging price fields
-  if (activeListings.length > 0) {
-    const sample = activeListings[0];
-    console.log('[IDX] Sample listing keys:', Object.keys(sample).join(', '));
-    console.log('[IDX] Sample price fields:', {
-      listPrice: sample.listPrice,
-      listingPrice: sample.listingPrice,
-      price: sample.price,
-      currentPrice: sample.currentPrice,
-      originalPrice: sample.originalPrice,
-      askingPrice: sample.askingPrice,
-      salePrice: sample.salePrice,
-    });
-  }
-
-  // Map IDX Broker response - EXCLUDE broker/agent info
   const properties = activeListings.map((listing) => {
-    // Try multiple price fields - IDX uses different field names
     const priceValue = listing.listPrice || listing.listingPrice || listing.price || 
                        listing.currentPrice || listing.originalPrice || listing.askingPrice || 
                        listing.salePrice || 0;
     const parsedPrice = parseFloat(String(priceValue).replace(/[,$]/g, '')) || 0;
-    
-    if (parsedPrice === 0) {
-      console.log('[IDX] No price found for listing:', listing.listingID, 'fields:', {
-        listPrice: listing.listPrice,
-        listingPrice: listing.listingPrice,
-        price: listing.price,
-      });
-    }
     
     return {
       id: String(listing.listingID || listing.mlsID || listing.idxID || crypto.randomUUID()),
@@ -276,14 +316,18 @@ function processResponse(data: unknown, corsHeaders: Record<string, string>) {
       mlsNumber: String(listing.listingID || listing.mlsID || ''),
       yearBuilt: parseInt(String(listing.yearBuilt || 0)) || null,
       lotSize: String(listing.acres || listing.lotSize || ''),
-      // Explicitly NOT including: listingAgentID, listingOfficeID, agentName, officeName, etc.
     };
   });
 
-  // Sort by price descending (most expensive first)
   properties.sort((a, b) => b.price - a.price);
 
   console.log('[IDX] Final properties:', properties.length, '(sorted by price high to low)');
+
+  // Cache properties in background (don't block response)
+  cacheProperties(properties).catch(err => console.error('[IDX] Background cache error:', err));
+  
+  // Clean expired cache periodically
+  cleanExpiredCache().catch(err => console.error('[IDX] Background cleanup error:', err));
 
   return new Response(
     JSON.stringify({ properties, total: properties.length }),
@@ -292,7 +336,6 @@ function processResponse(data: unknown, corsHeaders: Record<string, string>) {
 }
 
 function buildTitle(listing: Record<string, unknown>): string {
-  // Build a nice title from address components
   if (listing.address && typeof listing.address === 'string') {
     return listing.address;
   }
@@ -319,22 +362,20 @@ function buildAddress(listing: Record<string, unknown>): string {
 }
 
 function cleanDescription(desc: string): string {
-  // Remove agent/broker contact info from description
   return desc
     .replace(/call\s+[\w\s]+at\s+[\d\-\(\)]+/gi, '')
     .replace(/contact\s+[\w\s]+at\s+[\d\-\(\)]+/gi, '')
     .replace(/agent:\s*[\w\s]+/gi, '')
     .replace(/broker:\s*[\w\s]+/gi, '')
     .replace(/listing\s+agent:\s*[\w\s]+/gi, '')
-    .replace(/[\d]{3}[\-\.\s]?[\d]{3}[\-\.\s]?[\d]{4}/g, '') // Phone numbers
-    .replace(/[\w\.-]+@[\w\.-]+\.\w+/g, '') // Email addresses
+    .replace(/[\d]{3}[\-\.\s]?[\d]{3}[\-\.\s]?[\d]{4}/g, '')
+    .replace(/[\w\.-]+@[\w\.-]+\.\w+/g, '')
     .trim();
 }
 
 function extractAllImages(listing: Record<string, unknown>): string[] {
   const images: string[] = [];
   
-  // Check for image object with numbered keys (IDX format: {"0": {url: "..."}, "1": {...}})
   if (listing.image && typeof listing.image === 'object' && !Array.isArray(listing.image)) {
     const imageObj = listing.image as Record<string, unknown>;
     const sortedKeys = Object.keys(imageObj).sort((a, b) => parseInt(a) - parseInt(b));
@@ -343,7 +384,6 @@ function extractAllImages(listing: Record<string, unknown>): string[] {
       const img = imageObj[key];
       if (img && typeof img === 'object') {
         const imgData = img as Record<string, unknown>;
-        // IDX uses 'url' or direct string values
         const url = imgData.url || imgData.largeImageURL || imgData.mediumImageURL || imgData.smallImageURL;
         if (url && typeof url === 'string') {
           images.push(url);
@@ -354,22 +394,18 @@ function extractAllImages(listing: Record<string, unknown>): string[] {
     }
   }
   
-  // Single image string
   if (listing.image && typeof listing.image === 'string') {
     images.push(listing.image);
   }
   
-  // Check for photos array
   if (listing.photos && Array.isArray(listing.photos)) {
     images.push(...(listing.photos as string[]));
   }
   
-  // Check for images array
   if (listing.images && Array.isArray(listing.images)) {
     images.push(...(listing.images as string[]));
   }
   
-  // Check for numbered image fields (image0, image1, ..., image39)
   for (let i = 0; i <= 50; i++) {
     const imgKey = `image${i}`;
     const imgVal = listing[imgKey];
@@ -378,15 +414,12 @@ function extractAllImages(listing: Record<string, unknown>): string[] {
     }
   }
   
-  // Check for photo URL fields
   const photoFields = ['photoURL', 'photo', 'mainPhoto', 'primaryPhoto', 'listingPhoto'];
   for (const field of photoFields) {
     if (listing[field] && typeof listing[field] === 'string' && !images.includes(listing[field] as string)) {
       images.push(listing[field] as string);
     }
   }
-
-  console.log('[IDX] Extracted', images.length, 'images for listing');
   
   return images.length > 0 ? images : ['/placeholder.svg'];
 }
@@ -398,7 +431,6 @@ function extractFeatures(listing: Record<string, unknown>): string[] {
   
   const features: string[] = [];
   
-  // Common property features from IDX fields
   if (listing.pool === 'Y' || listing.pool === 'Yes' || listing.pool === true) features.push('Pool');
   if (listing.spa === 'Y' || listing.spa === 'Yes') features.push('Spa');
   if (listing.fireplace === 'Y' || listing.fireplace === 'Yes') features.push('Fireplace');

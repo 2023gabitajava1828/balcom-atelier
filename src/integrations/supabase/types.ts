@@ -404,6 +404,27 @@ export type Database = {
         }
         Relationships: []
       }
+      idx_property_cache: {
+        Row: {
+          cached_at: string
+          expires_at: string
+          id: string
+          property_data: Json
+        }
+        Insert: {
+          cached_at?: string
+          expires_at?: string
+          id: string
+          property_data: Json
+        }
+        Update: {
+          cached_at?: string
+          expires_at?: string
+          id?: string
+          property_data?: Json
+        }
+        Relationships: []
+      }
       lookbooks: {
         Row: {
           created_at: string | null
