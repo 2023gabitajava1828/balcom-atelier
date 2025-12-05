@@ -29,7 +29,8 @@ export const FeaturedLuxury = () => {
         .select("id, title, brand, price, category, images, featured")
         .eq("type", "shopping")
         .eq("status", "active")
-        .eq("featured", true)
+        .not("images", "is", null)
+        .order("price", { ascending: false })
         .limit(4);
       
       setItems((data as LuxuryItem[]) || []);

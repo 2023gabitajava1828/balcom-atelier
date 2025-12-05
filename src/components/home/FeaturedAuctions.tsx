@@ -13,6 +13,7 @@ interface AuctionItem {
   id: string;
   title: string;
   brand: string | null;
+  price: number | null;
   estimate_low: number | null;
   estimate_high: number | null;
   auction_house: string | null;
@@ -31,11 +32,11 @@ export const FeaturedAuctions = () => {
     const fetchItems = async () => {
       const { data } = await supabase
         .from("luxury_items")
-        .select("id, title, brand, estimate_low, estimate_high, auction_house, auction_date, category, images, featured")
+        .select("id, title, brand, estimate_low, estimate_high, price, auction_house, auction_date, category, images, featured")
         .eq("type", "auction")
         .eq("status", "active")
-        .eq("featured", true)
-        .order("auction_date", { ascending: true })
+        .not("images", "is", null)
+        .order("estimate_high", { ascending: false, nullsFirst: false })
         .limit(4);
       
       setItems((data as AuctionItem[]) || []);
@@ -119,15 +120,19 @@ export const FeaturedAuctions = () => {
                     </Badge>
                   )}
                   
-                  {/* Estimate */}
-                  {item.estimate_low && item.estimate_high && (
+                  {/* Estimate or Price */}
+                  {(item.estimate_low && item.estimate_high) ? (
                     <div className="absolute bottom-2 left-2">
                       <p className="text-[10px] text-muted-foreground uppercase">Est.</p>
                       <span className="text-sm font-serif font-bold text-primary">
                         {formatPrice(item.estimate_low)} – {formatPrice(item.estimate_high)}
                       </span>
                     </div>
-                  )}
+                  ) : item.price ? (
+                    <span className="absolute bottom-2 left-2 text-lg font-serif font-bold text-primary">
+                      {formatPrice(item.price)}
+                    </span>
+                  ) : null}
                 </div>
                 <div className="p-3">
                   {item.brand && (
