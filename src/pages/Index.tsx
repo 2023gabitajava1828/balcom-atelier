@@ -4,6 +4,8 @@ import { BottomTabs } from "@/components/layout/BottomTabs";
 import { Hero } from "@/components/home/Hero";
 import { QuickActions } from "@/components/home/QuickActions";
 import { FeaturedProperties } from "@/components/home/FeaturedProperties";
+import { FeaturedLuxury } from "@/components/home/FeaturedLuxury";
+import { FeaturedAuctions } from "@/components/home/FeaturedAuctions";
 import { FeaturedMarkets } from "@/components/home/FeaturedMarkets";
 
 const Index = () => {
@@ -14,6 +16,8 @@ const Index = () => {
         <Hero />
         <QuickActions />
         <FeaturedProperties />
+        <FeaturedLuxury />
+        <FeaturedAuctions />
         <FeaturedMarkets />
       </main>
       <Footer className="hidden md:block" />
