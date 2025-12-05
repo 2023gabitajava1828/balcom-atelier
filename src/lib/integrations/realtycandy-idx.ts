@@ -3,6 +3,7 @@
  * 
  * Fetch luxury property listings from live FMLS feed via edge function.
  * Supports: featured listings, saved search links, full property images
+ * Performance: Uses server-side caching for fast property lookups
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -120,12 +121,47 @@ export async function getPropertiesFromSavedLink(savedLinkId: string): Promise<P
 }
 
 /**
- * Get a single property by ID - searches within saved link 13759
+ * Get a single property by ID - OPTIMIZED with cache lookup
+ * 1. First checks local Supabase cache (fast)
+ * 2. Falls back to edge function cache lookup
+ * 3. Only fetches full list as last resort
  */
 export async function getPropertyById(id: string): Promise<Property | null> {
   console.log('[IDX] Getting property by ID:', id);
   
-  // Search within the Atlanta saved link (13759) with high limit to find the property
+  // Step 1: Try to get from Supabase cache directly (fastest)
+  try {
+    const { data: cached } = await supabase
+      .from('idx_property_cache')
+      .select('property_data, expires_at')
+      .eq('id', id)
+      .maybeSingle();
+    
+    if (cached && new Date(cached.expires_at) > new Date()) {
+      console.log('[IDX] Cache hit (Supabase):', id);
+      return cached.property_data as unknown as Property;
+    }
+  } catch (err) {
+    console.log('[IDX] Cache lookup failed, trying edge function');
+  }
+  
+  // Step 2: Try edge function cache lookup
+  try {
+    const { data, error } = await supabase.functions.invoke('idx-properties', {
+      body: { action: 'getPropertyById', propertyId: id },
+    });
+    
+    if (!error && data?.property) {
+      console.log('[IDX] Cache hit (edge function):', id);
+      return data.property as Property;
+    }
+  } catch (err) {
+    console.log('[IDX] Edge function cache miss');
+  }
+  
+  // Step 3: Fallback - fetch from saved link and find property
+  // This also populates the cache for future requests
+  console.log('[IDX] Cache miss, fetching from saved link');
   const properties = await searchProperties({ 
     savedLinkId: '13759',
     limit: 500 
