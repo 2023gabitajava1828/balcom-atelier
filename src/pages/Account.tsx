@@ -7,8 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { 
+  ProfileSkeleton, 
+  SavedPropertyRowSkeleton, 
+  RsvpRowSkeleton, 
+  RequestCardSkeleton,
+  SkeletonGrid 
+} from "@/components/ui/skeletons";
+import {
   User, Settings, CreditCard, Mail, Shield, Calendar, 
   Home, MessageSquare, Heart, MapPin, Clock, Edit2, Save, X 
 } from "lucide-react";
@@ -178,11 +184,15 @@ const Account = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="pt-20 pb-24 md:pb-8">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl py-8">
+            <Card className="p-6 md:p-8 mb-8">
+              <ProfileSkeleton />
+            </Card>
+          </div>
+        </main>
       </div>
     );
   }
@@ -357,11 +367,11 @@ const Account = () => {
             {/* Saved Properties Tab */}
             <TabsContent value="saved">
               {loadingData ? (
-                <div className="grid md:grid-cols-2 gap-4">
-                  {[1, 2].map(i => (
-                    <Skeleton key={i} className="h-32 rounded-lg" />
-                  ))}
-                </div>
+                <SkeletonGrid 
+                  count={4} 
+                  Component={SavedPropertyRowSkeleton} 
+                  className="grid-cols-1 md:grid-cols-2" 
+                />
               ) : savedProperties.length === 0 ? (
                 <Card className="p-12 text-center">
                   <Heart className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
@@ -409,11 +419,11 @@ const Account = () => {
             {/* RSVPs Tab */}
             <TabsContent value="rsvps">
               {loadingData ? (
-                <div className="space-y-3">
-                  {[1, 2].map(i => (
-                    <Skeleton key={i} className="h-20 rounded-lg" />
-                  ))}
-                </div>
+                <SkeletonGrid 
+                  count={3} 
+                  Component={RsvpRowSkeleton} 
+                  className="grid-cols-1" 
+                />
               ) : rsvps.length === 0 ? (
                 <Card className="p-12 text-center">
                   <Calendar className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
@@ -458,11 +468,11 @@ const Account = () => {
             {/* Concierge Requests Tab */}
             <TabsContent value="requests">
               {loadingData ? (
-                <div className="space-y-3">
-                  {[1, 2].map(i => (
-                    <Skeleton key={i} className="h-20 rounded-lg" />
-                  ))}
-                </div>
+                <SkeletonGrid 
+                  count={3} 
+                  Component={RequestCardSkeleton} 
+                  className="grid-cols-1" 
+                />
               ) : requests.length === 0 ? (
                 <Card className="p-12 text-center">
                   <MessageSquare className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />

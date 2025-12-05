@@ -15,6 +15,7 @@ import AthleteRequestForm from "@/components/sports/AthleteRequestForm";
 import AgentActivityDashboard from "@/components/sports/AgentActivityDashboard";
 import AddAthleteModal from "@/components/sports/AddAthleteModal";
 import { useToast } from "@/hooks/use-toast";
+import { StatsCardSkeleton, AthleteCardSkeleton, SkeletonGrid } from "@/components/ui/skeletons";
 
 interface Athlete {
   id: string;
@@ -119,8 +120,24 @@ const Sports = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-background pb-20 md:pb-0">
+        <Navigation />
+        <main className="container mx-auto px-4 pt-24 pb-6 max-w-7xl">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+                <Trophy className="h-8 w-8 text-primary" />
+                Agent Dashboard
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Manage your athletes and their concierge requests
+              </p>
+            </div>
+          </div>
+          <SkeletonGrid count={4} Component={StatsCardSkeleton} className="grid-cols-2 md:grid-cols-4 mb-8" />
+          <SkeletonGrid count={6} Component={AthleteCardSkeleton} className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3" />
+        </main>
+        <BottomTabs />
       </div>
     );
   }

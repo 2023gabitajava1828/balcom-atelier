@@ -9,6 +9,7 @@ import { ShoppingBag, Gavel, MessageSquare, ExternalLink } from "lucide-react";
 import { CategoryFilter } from "@/components/luxury/CategoryFilter";
 import { LuxuryItemCard } from "@/components/luxury/LuxuryItemCard";
 import { ItemDetailModal } from "@/components/luxury/ItemDetailModal";
+import { LuxuryItemSkeleton, SkeletonGrid } from "@/components/ui/skeletons";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -143,11 +144,11 @@ const Lifestyle = () => {
 
             <TabsContent value="shopping" className="mt-0">
               {shoppingLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {[...Array(8)].map((_, i) => (
-                    <Card key={i} className="h-96 animate-pulse bg-card/50" />
-                  ))}
-                </div>
+                <SkeletonGrid 
+                  count={8} 
+                  Component={LuxuryItemSkeleton} 
+                  className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                />
               ) : shoppingItems.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {shoppingItems.map((item) => (
@@ -180,11 +181,11 @@ const Lifestyle = () => {
 
             <TabsContent value="auction" className="mt-0">
               {auctionLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {[...Array(8)].map((_, i) => (
-                    <Card key={i} className="h-96 animate-pulse bg-card/50" />
-                  ))}
-                </div>
+                <SkeletonGrid 
+                  count={8} 
+                  Component={LuxuryItemSkeleton} 
+                  className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                />
               ) : auctionItems.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {auctionItems.map((item) => (
