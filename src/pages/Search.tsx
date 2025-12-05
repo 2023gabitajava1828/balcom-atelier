@@ -122,10 +122,94 @@ const Search = () => {
     const currentOffset = reset ? 0 : offset;
     
     try {
-      // For Atlanta, use live IDX feed from saved link
-      if (activeMarket === "atlanta") {
+      // For "All Markets" - combine IDX Atlanta + Curated properties
+      if (activeMarket === "all") {
+        const [idxProperties, curatedResult] = await Promise.all([
+          // Fetch Atlanta properties from IDX
+          searchIDXProperties({
+            savedLinkId: "13759",
+            city: "Atlanta",
+            region: "Georgia",
+            priceMin: activeFilters.minPrice ? parseFloat(activeFilters.minPrice) : undefined,
+            priceMax: activeFilters.maxPrice ? parseFloat(activeFilters.maxPrice) : undefined,
+            beds: activeFilters.beds && activeFilters.beds !== "any" ? parseInt(activeFilters.beds) : undefined,
+            baths: activeFilters.baths && activeFilters.baths !== "any" ? parseInt(activeFilters.baths) : undefined,
+            propertyType: activeFilters.propertyType && activeFilters.propertyType !== "any" ? activeFilters.propertyType : undefined,
+            limit: 100, // Get more to combine
+            offset: 0,
+          }),
+          // Fetch curated properties from Supabase
+          (async () => {
+            let query = supabase
+              .from("properties")
+              .select("*", { count: "exact" })
+              .eq("status", "active");
+
+            if (activeFilters.query) {
+              query = query.or(`title.ilike.%${activeFilters.query}%,address.ilike.%${activeFilters.query}%,city.ilike.%${activeFilters.query}%`);
+            }
+            if (activeFilters.minPrice) {
+              query = query.gte("price", parseFloat(activeFilters.minPrice));
+            }
+            if (activeFilters.maxPrice) {
+              query = query.lte("price", parseFloat(activeFilters.maxPrice));
+            }
+            if (activeFilters.beds && activeFilters.beds !== "any") {
+              query = query.gte("bedrooms", parseInt(activeFilters.beds));
+            }
+            if (activeFilters.baths && activeFilters.baths !== "any") {
+              query = query.gte("bathrooms", parseInt(activeFilters.baths));
+            }
+            if (activeFilters.propertyType && activeFilters.propertyType !== "any") {
+              query = query.eq("property_type", activeFilters.propertyType);
+            }
+
+            return query.order("price", { ascending: false });
+          })(),
+        ]);
+
+        // Map IDX properties
+        const mappedIdx: Property[] = idxProperties.map(p => ({
+          id: p.id,
+          title: p.title,
+          description: p.description,
+          price: p.price,
+          city: p.city,
+          country: p.country,
+          bedrooms: p.bedrooms,
+          bathrooms: p.bathrooms,
+          sqft: p.sqft,
+          property_type: p.propertyType,
+          images: p.images,
+          lifestyle_tags: p.lifestyleTags,
+          address: p.address,
+          source: "idx" as const,
+        }));
+
+        // Map curated properties
+        const mappedCurated: Property[] = (curatedResult.data || []).map(p => ({
+          ...p,
+          source: "curated" as const,
+        }));
+
+        // Combine and sort by price (highest first)
+        const combined = [...mappedIdx, ...mappedCurated].sort((a, b) => b.price - a.price);
+        
+        // Paginate the combined results
+        const paginatedResults = combined.slice(currentOffset, currentOffset + LIMIT);
+        
+        if (reset) {
+          setProperties(paginatedResults);
+        } else {
+          setProperties([...properties, ...paginatedResults]);
+        }
+        setTotal(combined.length);
+        setOffset(currentOffset + LIMIT);
+      }
+      // For Atlanta only, use live IDX feed
+      else if (activeMarket === "atlanta") {
         const idxProperties = await searchIDXProperties({
-          savedLinkId: "13759", // Atlanta luxury saved search
+          savedLinkId: "13759",
           city: "Atlanta",
           region: "Georgia",
           priceMin: activeFilters.minPrice ? parseFloat(activeFilters.minPrice) : undefined,
@@ -137,7 +221,6 @@ const Search = () => {
           offset: currentOffset,
         });
 
-        // Map IDX properties to our format
         const mappedProperties: Property[] = idxProperties.map(p => ({
           id: p.id,
           title: p.title,
@@ -169,19 +252,15 @@ const Search = () => {
           .select("*", { count: "exact" })
           .eq("status", "active");
 
-        // Filter by market
-        if (activeMarket !== "all") {
-          const cityMap: Record<string, string> = {
-            "miami": "Miami",
-            "dubai": "Dubai",
-            "mexico-city": "Mexico City",
-          };
-          if (cityMap[activeMarket]) {
-            query = query.eq("city", cityMap[activeMarket]);
-          }
+        const cityMap: Record<string, string> = {
+          "miami": "Miami",
+          "dubai": "Dubai",
+          "mexico-city": "Mexico City",
+        };
+        if (cityMap[activeMarket]) {
+          query = query.eq("city", cityMap[activeMarket]);
         }
 
-        // Apply search query
         if (activeFilters.query) {
           query = query.or(`title.ilike.%${activeFilters.query}%,address.ilike.%${activeFilters.query}%,city.ilike.%${activeFilters.query}%`);
         }
@@ -202,7 +281,7 @@ const Search = () => {
         }
 
         const { data, count } = await query
-          .order("created_at", { ascending: false })
+          .order("price", { ascending: false })
           .range(currentOffset, currentOffset + LIMIT - 1);
 
         if (data) {
