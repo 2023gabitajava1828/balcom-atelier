@@ -195,4 +195,95 @@ export function SkeletonGrid({
   );
 }
 
+// Request Card Skeleton (for concierge requests)
+export function RequestCardSkeleton() {
+  return (
+    <div className="bg-card rounded-xl p-6 border border-border">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <Skeleton className="h-6 w-20 rounded-full" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <Skeleton className="h-6 w-3/4 mb-2" />
+          <Skeleton className="h-4 w-full mb-1" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
+      </div>
+      <Skeleton className="h-9 w-28 rounded-md mt-4" />
+    </div>
+  );
+}
+
+// Saved Property Row Skeleton (horizontal card with thumbnail)
+export function SavedPropertyRowSkeleton() {
+  return (
+    <div className="flex overflow-hidden bg-card rounded-xl border border-border">
+      <Skeleton className="w-32 h-28 flex-shrink-0" />
+      <div className="p-4 flex-1 space-y-2">
+        <Skeleton className="h-5 w-3/4" />
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-5 w-20 mt-2" />
+      </div>
+    </div>
+  );
+}
+
+// RSVP Row Skeleton
+export function RsvpRowSkeleton() {
+  return (
+    <div className="flex items-center gap-4 p-4 bg-card rounded-lg border border-border">
+      <Skeleton className="w-12 h-14 rounded-lg flex-shrink-0" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-5 w-2/3" />
+        <Skeleton className="h-4 w-1/2" />
+      </div>
+    </div>
+  );
+}
+
+// Athlete Card Skeleton
+export function AthleteCardSkeleton() {
+  return (
+    <div className="bg-card rounded-xl p-4 border border-border">
+      <div className="flex items-start gap-4">
+        <Skeleton className="h-14 w-14 rounded-full flex-shrink-0" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-40" />
+          <div className="flex gap-2 pt-1">
+            <Skeleton className="h-5 w-16 rounded-full" />
+            <Skeleton className="h-5 w-20 rounded-full" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Activity Card Skeleton (for agent dashboard timeline)
+export function ActivityCardSkeleton() {
+  return (
+    <div className="bg-card rounded-xl p-4 border border-border">
+      <div className="flex flex-col md:flex-row md:items-center gap-4">
+        <Skeleton className="h-10 w-10 rounded-lg flex-shrink-0" />
+        <div className="flex-1 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-5 w-20 rounded-full" />
+            <Skeleton className="h-5 w-24 rounded-full" />
+          </div>
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-4 w-full" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-12" />
+          <Skeleton className="h-8 w-8 rounded-md" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export { Skeleton };

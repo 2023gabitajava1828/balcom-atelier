@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ActivityCardSkeleton, SkeletonGrid } from "@/components/ui/skeletons";
 
 interface AthleteRequest {
   id: string;
@@ -112,8 +113,11 @@ const AgentActivityDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Request Activity</h3>
+        </div>
+        <SkeletonGrid count={4} Component={ActivityCardSkeleton} className="grid-cols-1" />
       </div>
     );
   }

@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Clock, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { MessageSquare, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
+import { RequestCardSkeleton, SkeletonGrid } from "@/components/ui/skeletons";
 
 interface Request {
   id: string;
@@ -131,9 +132,9 @@ export const RequestsList = () => {
 
   if (loading) {
     return (
-      <div className="text-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary mb-4" />
-        <p className="text-foreground/60">Loading your requests...</p>
+      <div className="space-y-4">
+        <h2 className="font-serif text-2xl font-bold mb-6">Your Requests</h2>
+        <SkeletonGrid count={3} Component={RequestCardSkeleton} className="grid-cols-1" />
       </div>
     );
   }
