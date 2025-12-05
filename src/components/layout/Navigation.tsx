@@ -10,9 +10,10 @@ import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
   { label: "Search", path: "/search" },
+  { label: "Shopping", path: "/shopping" },
+  { label: "Auction", path: "/auction" },
   { label: "Concierge", path: "/concierge" },
   { label: "Events", path: "/community" },
-  { label: "Membership", path: "/membership" },
 ];
 
 export const Navigation = () => {

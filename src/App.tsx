@@ -10,7 +10,8 @@ import PropertyDetail from "./pages/PropertyDetail";
 import CityMarket from "./pages/CityMarket";
 import Concierge from "./pages/Concierge";
 import ConciergeRequest from "./pages/ConciergeRequest";
-import Style from "./pages/Style";
+import Shopping from "./pages/Shopping";
+import Auction from "./pages/Auction";
 import Wealth from "./pages/Wealth";
 import Events from "./pages/Events";
 import Account from "./pages/Account";
@@ -35,7 +36,8 @@ const App = () => (
           <Route path="/real-estate/:city" element={<CityMarket />} />
           <Route path="/concierge" element={<Concierge />} />
           <Route path="/concierge/request/:id" element={<ConciergeRequest />} />
-          <Route path="/style" element={<Style />} />
+          <Route path="/shopping" element={<Shopping />} />
+          <Route path="/auction" element={<Auction />} />
           <Route path="/wealth" element={<Wealth />} />
           <Route path="/community" element={<Events />} />
           <Route path="/events" element={<Events />} />
