@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,11 +8,12 @@ import { useMembership, TIER_LABELS, TIER_COLORS } from "@/hooks/useMembership";
 import heroAtlanta from "@/assets/hero-atlanta.jpg";
 import heroDubai from "@/assets/hero-dubai.jpg";
 import heroMiami from "@/assets/hero-miami.jpg";
+import { cn } from "@/lib/utils";
 
 const slides = [
-  { image: heroAtlanta, city: "Atlanta", tagline: "Southern Elegance Meets Modern Luxury" },
-  { image: heroDubai, city: "Dubai", tagline: "Global Investment Gateway" },
-  { image: heroMiami, city: "Miami", tagline: "Coastal Paradise Living" },
+  { image: heroAtlanta, city: "Atlanta", tagline: "Southern Elegance" },
+  { image: heroDubai, city: "Dubai", tagline: "Global Gateway" },
+  { image: heroMiami, city: "Miami", tagline: "Coastal Paradise" },
 ];
 
 const getGreeting = () => {
@@ -24,8 +25,15 @@ const getGreeting = () => {
 
 export const Hero = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
   const { user } = useAuth();
   const { tier } = useMembership();
+
+  useEffect(() => {
+    // Trigger entrance animation
+    const timer = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -37,139 +45,158 @@ export const Hero = () => {
   // Get first name from user metadata or email
   const firstName = user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'Member';
 
+  const scrollToContent = () => {
+    window.scrollTo({ top: window.innerHeight - 80, behavior: 'smooth' });
+  };
+
   return (
-    <section className="relative h-[85vh] md:h-screen w-full overflow-hidden">
+    <section className="relative h-[100svh] w-full overflow-hidden">
       {/* Background Slides */}
       {slides.map((slide, index) => (
         <div
           key={slide.city}
           className={cn(
-            "absolute inset-0 transition-opacity duration-1000",
+            "absolute inset-0 transition-opacity duration-1500 ease-out",
             index === currentSlide ? "opacity-100" : "opacity-0"
           )}
         >
           <img
             src={slide.image}
             alt={`${slide.city} luxury real estate`}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover scale-105"
+            style={{
+              transform: index === currentSlide ? 'scale(1.05)' : 'scale(1)',
+              transition: 'transform 8s ease-out'
+            }}
           />
-          <div 
-            className="absolute inset-0" 
-            style={{ background: 'var(--gradient-hero)' }} 
-          />
+          {/* Enhanced gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/40 to-transparent" />
         </div>
       ))}
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 h-full flex flex-col justify-end pb-32 md:pb-24">
-        <div className="max-w-3xl space-y-5">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center">
+        <div className={cn(
+          "max-w-2xl transition-all duration-1000 ease-out",
+          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+        )}>
           {user ? (
-            // Logged-in user greeting
+            // Logged-in user - personalized greeting
             <>
-              <Badge className={`${TIER_COLORS[tier]} animate-fade-in`}>
+              <Badge 
+                className={cn(TIER_COLORS[tier], "mb-6")}
+                style={{ transitionDelay: '200ms' }}
+              >
                 {TIER_LABELS[tier]} Member
               </Badge>
-              <h1 
-                className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground leading-tight animate-fade-in"
-                style={{ animationDelay: '100ms' }}
-              >
-                {getGreeting()}, <span className="gradient-text-gold">{firstName}</span>
+              <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-[1.1] mb-4">
+                {getGreeting()},
+                <br />
+                <span className="gradient-text-gold">{firstName}</span>
               </h1>
-              <p 
-                className="text-base md:text-lg text-muted-foreground max-w-xl animate-fade-in"
-                style={{ animationDelay: '200ms' }}
-              >
-                Discover extraordinary properties
+              <p className="text-lg text-muted-foreground mb-8 max-w-lg">
+                Your world of exclusive properties and bespoke services awaits.
               </p>
+              
+              {/* Single Primary CTA */}
+              <Link to="/real-estate">
+                <Button 
+                  size="lg" 
+                  className="group gap-3 px-8 py-6 text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300"
+                >
+                  Explore Properties
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
             </>
           ) : (
-            // Guest view - Splash screen style
+            // Guest view - Emotional, aspirational messaging
             <>
-              <p className="text-eyebrow text-primary animate-fade-in">
+              <p className="text-eyebrow text-primary/90 mb-4 tracking-[0.2em]">
                 BALCOM PRIVÉ
               </p>
-              <h1 
-                className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground leading-tight animate-fade-in"
-                style={{ animationDelay: '100ms' }}
-              >
-                Global <span className="gradient-text-gold">Luxury</span>
+              <h1 className="font-serif text-4xl sm:text-5xl lg:text-7xl font-bold text-foreground leading-[1.05] mb-6">
+                Live Without
+                <br />
+                <span className="gradient-text-gold">Compromise</span>
               </h1>
-              <p 
-                className="text-lg md:text-xl text-muted-foreground max-w-xl animate-fade-in"
-                style={{ animationDelay: '200ms' }}
-              >
-                Curated estates in Atlanta, Miami, Dubai & beyond
+              <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-lg leading-relaxed">
+                Curated luxury estates and white-glove concierge for those who expect the&nbsp;extraordinary.
+              </p>
+              
+              {/* Single Primary CTA */}
+              <Link to="/auth">
+                <Button 
+                  size="lg" 
+                  className="group gap-3 px-8 py-6 text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 shadow-gold"
+                >
+                  Begin Your Journey
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+              
+              {/* Secondary link - subtle, text only */}
+              <p className="mt-6 text-sm text-muted-foreground">
+                Already a member?{' '}
+                <Link to="/auth" className="text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors">
+                  Sign in
+                </Link>
               </p>
             </>
           )}
+        </div>
 
-          {/* Current City Indicator */}
-          <div 
-            className="text-sm text-primary/80 font-medium animate-fade-in"
-            style={{ animationDelay: '300ms' }}
-          >
-            {slides[currentSlide].tagline}
+        {/* Bottom section - Progressive disclosure */}
+        <div className={cn(
+          "absolute bottom-8 left-0 right-0 container mx-auto px-4 sm:px-6 lg:px-8 flex items-end justify-between transition-all duration-1000 delay-500",
+          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+        )}>
+          {/* Current market indicator */}
+          <div className="hidden sm:flex items-center gap-4">
+            {slides.map((slide, index) => (
+              <button
+                key={slide.city}
+                onClick={() => setCurrentSlide(index)}
+                className={cn(
+                  "text-sm transition-all duration-300",
+                  index === currentSlide 
+                    ? "text-foreground font-medium" 
+                    : "text-muted-foreground hover:text-foreground/70"
+                )}
+              >
+                {slide.city}
+              </button>
+            ))}
           </div>
 
-          {/* CTA Buttons */}
-          <div 
-            className="flex flex-col sm:flex-row gap-3 pt-2 animate-fade-in"
-            style={{ animationDelay: '400ms' }}
-          >
-            {user ? (
-              <>
-                <Link to="/search">
-                  <Button variant="hero" size="lg" className="group w-full sm:w-auto">
-                    Search Properties
-                    <ChevronRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-                <Link to="/concierge">
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                    Contact Concierge
-                  </Button>
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link to="/auth">
-                  <Button variant="hero" size="lg" className="group w-full sm:w-auto">
-                    Get Started
-                    <ChevronRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-                <Link to="/membership">
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                    View Membership
-                  </Button>
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Slide Indicators */}
-          <div className="flex gap-2 pt-4">
+          {/* Slide progress indicators - mobile */}
+          <div className="flex sm:hidden gap-2">
             {slides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
                 className={cn(
-                  "h-1 rounded-full transition-all duration-300",
+                  "h-1 rounded-full transition-all duration-500",
                   index === currentSlide 
-                    ? "w-10 bg-primary" 
-                    : "w-5 bg-foreground/30 hover:bg-foreground/50"
+                    ? "w-8 bg-primary" 
+                    : "w-2 bg-foreground/30"
                 )}
                 aria-label={`Go to slide ${index + 1}`}
               />
             ))}
           </div>
+
+          {/* Scroll indicator */}
+          <button 
+            onClick={scrollToContent}
+            className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+          >
+            <span>Explore</span>
+            <ChevronDown className="w-4 h-4 animate-bounce" />
+          </button>
         </div>
       </div>
     </section>
   );
 };
-
-// Helper function
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(' ');
-}
