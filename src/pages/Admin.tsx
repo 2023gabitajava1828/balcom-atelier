@@ -1,7 +1,7 @@
 import { Navigation } from "@/components/layout/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Shield, Users, Calendar, FileText, Settings, Home, RefreshCw, Loader2, ShoppingBag } from "lucide-react";
+import { Shield, Users, Calendar, FileText, Settings, Home, RefreshCw, Loader2, ShoppingBag, Trash2 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
@@ -214,6 +214,32 @@ const Admin = () => {
     } finally {
       setIsSyncingSothebysItems(false);
       setIsSyncingWithDetails(false);
+    }
+  };
+
+  const handleDeleteLuxuryItem = async (itemId: string, itemTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from("luxury_items")
+        .delete()
+        .eq("id", itemId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Item Deleted",
+        description: `"${itemTitle}" has been removed.`,
+      });
+
+      fetchLuxuryItems();
+      fetchStats();
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete item",
+        variant: "destructive",
+      });
     }
   };
 
@@ -464,6 +490,14 @@ const Admin = () => {
                                   {item.auction_house && <span>{item.auction_house}</span>}
                                 </div>
                               </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => handleDeleteLuxuryItem(item.id, item.title)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </div>
                           </Card>
                         ))
