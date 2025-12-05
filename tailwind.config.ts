@@ -62,10 +62,17 @@ export default {
         },
         success: "hsl(var(--success))",
         warning: "hsl(var(--warning))",
+        subtle: "hsl(var(--subtle))",
         // Semantic color aliases for the spec
         ivory: "hsl(var(--foreground))",
         gold: "hsl(var(--primary))",
-        subtle: "hsl(var(--muted-foreground))",
+        // Tier colors
+        tier: {
+          silver: "hsl(var(--tier-silver))",
+          gold: "hsl(var(--tier-gold))",
+          platinum: "hsl(var(--tier-platinum))",
+          black: "hsl(var(--tier-black))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

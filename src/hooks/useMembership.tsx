@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-export type MembershipTier = "silver" | "gold" | "platinum";
+export type MembershipTier = "silver" | "gold" | "platinum" | "black";
 
 interface Membership {
   tier: MembershipTier;
@@ -14,18 +14,21 @@ export const TIER_HIERARCHY: Record<MembershipTier, number> = {
   silver: 1,
   gold: 2,
   platinum: 3,
+  black: 4,
 };
 
 export const TIER_LABELS: Record<MembershipTier, string> = {
   silver: "Silver",
   gold: "Gold",
   platinum: "Platinum",
+  black: "Black",
 };
 
 export const TIER_COLORS: Record<MembershipTier, string> = {
-  silver: "text-muted-foreground",
-  gold: "text-primary",
-  platinum: "text-primary",
+  silver: "tier-silver",
+  gold: "tier-gold",
+  platinum: "tier-platinum",
+  black: "tier-black",
 };
 
 export const useMembership = () => {
@@ -70,6 +73,7 @@ export const useMembership = () => {
     if (!membership) return "gold";
     if (membership.tier === "silver") return "gold";
     if (membership.tier === "gold") return "platinum";
+    if (membership.tier === "platinum") return "black";
     return null;
   };
 
@@ -79,7 +83,8 @@ export const useMembership = () => {
     loading,
     canAccessTier,
     getUpgradeTier,
-    isGold: membership?.tier === "gold" || membership?.tier === "platinum",
-    isPlatinum: membership?.tier === "platinum",
+    isGold: membership?.tier === "gold" || membership?.tier === "platinum" || membership?.tier === "black",
+    isPlatinum: membership?.tier === "platinum" || membership?.tier === "black",
+    isBlack: membership?.tier === "black",
   };
 };
