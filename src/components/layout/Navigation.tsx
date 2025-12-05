@@ -46,13 +46,13 @@ export const Navigation = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 md:h-20">
+        <div className="flex items-center justify-between h-16 md:h-20 gap-4">
           {/* Logo */}
-          <Link to="/" className="flex flex-col group">
-            <span className="font-serif text-xl md:text-2xl font-bold text-foreground tracking-tight">
+          <Link to="/" className="flex flex-col group shrink-0">
+            <span className="font-serif text-xl md:text-2xl font-bold text-foreground tracking-tight leading-tight">
               Balcom <span className="gradient-text-gold">Privé</span>
             </span>
-            <span className="text-[9px] md:text-[10px] text-muted-foreground tracking-widest hidden sm:block">
+            <span className="text-[9px] md:text-[10px] text-muted-foreground tracking-widest hidden sm:block leading-none">
               GLOBAL REAL ESTATE · WHITE-GLOVE CONCIERGE
             </span>
           </Link>
