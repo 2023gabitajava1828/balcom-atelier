@@ -15,12 +15,14 @@ import {
   Bath,
   Maximize,
   Heart,
-  Loader2
+  Loader2,
+  Radio
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { searchProperties as searchIDXProperties, Property as IDXProperty } from "@/lib/integrations/realtycandy-idx";
 import {
   Sheet,
   SheetContent,
@@ -51,17 +53,25 @@ interface Property {
   images: string[] | null;
   lifestyle_tags: string[] | null;
   address: string | null;
+  source?: "idx" | "curated";
 }
 
 interface Filters {
   query: string;
-  city: string;
   minPrice: string;
   maxPrice: string;
   beds: string;
   baths: string;
   propertyType: string;
 }
+
+const MARKETS = [
+  { id: "all", name: "All Markets", flag: "🌐", live: false },
+  { id: "atlanta", name: "Atlanta", flag: "🇺🇸", live: true },
+  { id: "miami", name: "Miami", flag: "🇺🇸", live: false },
+  { id: "dubai", name: "Dubai", flag: "🇦🇪", live: false },
+  { id: "mexico-city", name: "Mexico City", flag: "🇲🇽", live: false },
+];
 
 const LIMIT = 12;
 
@@ -74,9 +84,9 @@ const Search = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
+  const [activeMarket, setActiveMarket] = useState("all");
   const [filters, setFilters] = useState<Filters>({
     query: "",
-    city: "",
     minPrice: "",
     maxPrice: "",
     beds: "",
@@ -85,7 +95,6 @@ const Search = () => {
   });
   const [activeFilters, setActiveFilters] = useState<Filters>({
     query: "",
-    city: "",
     minPrice: "",
     maxPrice: "",
     beds: "",
@@ -93,12 +102,14 @@ const Search = () => {
     propertyType: "",
   });
 
+  const currentMarket = MARKETS.find(m => m.id === activeMarket);
+
   useEffect(() => {
     fetchProperties(true);
     if (user) {
       fetchSavedProperties();
     }
-  }, [user]);
+  }, [user, activeMarket]);
 
   const fetchProperties = async (reset = false) => {
     if (reset) {
@@ -109,47 +120,108 @@ const Search = () => {
     }
 
     const currentOffset = reset ? 0 : offset;
+    
+    try {
+      // For Atlanta, use live IDX feed
+      if (activeMarket === "atlanta") {
+        const idxProperties = await searchIDXProperties({
+          city: "Atlanta",
+          region: "Georgia",
+          priceMin: activeFilters.minPrice ? parseFloat(activeFilters.minPrice) : undefined,
+          priceMax: activeFilters.maxPrice ? parseFloat(activeFilters.maxPrice) : undefined,
+          beds: activeFilters.beds && activeFilters.beds !== "any" ? parseInt(activeFilters.beds) : undefined,
+          baths: activeFilters.baths && activeFilters.baths !== "any" ? parseInt(activeFilters.baths) : undefined,
+          propertyType: activeFilters.propertyType && activeFilters.propertyType !== "any" ? activeFilters.propertyType : undefined,
+          limit: LIMIT,
+          offset: currentOffset,
+        });
 
-    let query = supabase
-      .from("properties")
-      .select("*", { count: "exact" })
-      .eq("status", "active");
+        // Map IDX properties to our format
+        const mappedProperties: Property[] = idxProperties.map(p => ({
+          id: p.id,
+          title: p.title,
+          description: p.description,
+          price: p.price,
+          city: p.city,
+          country: p.country,
+          bedrooms: p.bedrooms,
+          bathrooms: p.bathrooms,
+          sqft: p.sqft,
+          property_type: p.propertyType,
+          images: p.images,
+          lifestyle_tags: p.lifestyleTags,
+          address: p.address,
+          source: "idx" as const,
+        }));
 
-    // Apply filters
-    if (activeFilters.query) {
-      query = query.or(`title.ilike.%${activeFilters.query}%,address.ilike.%${activeFilters.query}%,city.ilike.%${activeFilters.query}%`);
-    }
-    if (activeFilters.city) {
-      query = query.ilike("city", `%${activeFilters.city}%`);
-    }
-    if (activeFilters.minPrice) {
-      query = query.gte("price", parseFloat(activeFilters.minPrice));
-    }
-    if (activeFilters.maxPrice) {
-      query = query.lte("price", parseFloat(activeFilters.maxPrice));
-    }
-    if (activeFilters.beds && activeFilters.beds !== "any") {
-      query = query.gte("bedrooms", parseInt(activeFilters.beds));
-    }
-    if (activeFilters.baths && activeFilters.baths !== "any") {
-      query = query.gte("bathrooms", parseInt(activeFilters.baths));
-    }
-    if (activeFilters.propertyType && activeFilters.propertyType !== "any") {
-      query = query.eq("property_type", activeFilters.propertyType);
-    }
-
-    const { data, count } = await query
-      .order("created_at", { ascending: false })
-      .range(currentOffset, currentOffset + LIMIT - 1);
-
-    if (data) {
-      if (reset) {
-        setProperties(data);
+        if (reset) {
+          setProperties(mappedProperties);
+        } else {
+          setProperties([...properties, ...mappedProperties]);
+        }
+        setTotal(mappedProperties.length < LIMIT ? currentOffset + mappedProperties.length : currentOffset + LIMIT + 1);
+        setOffset(currentOffset + LIMIT);
       } else {
-        setProperties([...properties, ...data]);
+        // For other markets, use curated Supabase data
+        let query = supabase
+          .from("properties")
+          .select("*", { count: "exact" })
+          .eq("status", "active");
+
+        // Filter by market
+        if (activeMarket !== "all") {
+          const cityMap: Record<string, string> = {
+            "miami": "Miami",
+            "dubai": "Dubai",
+            "mexico-city": "Mexico City",
+          };
+          if (cityMap[activeMarket]) {
+            query = query.eq("city", cityMap[activeMarket]);
+          }
+        }
+
+        // Apply search query
+        if (activeFilters.query) {
+          query = query.or(`title.ilike.%${activeFilters.query}%,address.ilike.%${activeFilters.query}%,city.ilike.%${activeFilters.query}%`);
+        }
+        if (activeFilters.minPrice) {
+          query = query.gte("price", parseFloat(activeFilters.minPrice));
+        }
+        if (activeFilters.maxPrice) {
+          query = query.lte("price", parseFloat(activeFilters.maxPrice));
+        }
+        if (activeFilters.beds && activeFilters.beds !== "any") {
+          query = query.gte("bedrooms", parseInt(activeFilters.beds));
+        }
+        if (activeFilters.baths && activeFilters.baths !== "any") {
+          query = query.gte("bathrooms", parseInt(activeFilters.baths));
+        }
+        if (activeFilters.propertyType && activeFilters.propertyType !== "any") {
+          query = query.eq("property_type", activeFilters.propertyType);
+        }
+
+        const { data, count } = await query
+          .order("created_at", { ascending: false })
+          .range(currentOffset, currentOffset + LIMIT - 1);
+
+        if (data) {
+          const mappedData = data.map(p => ({ ...p, source: "curated" as const }));
+          if (reset) {
+            setProperties(mappedData);
+          } else {
+            setProperties([...properties, ...mappedData]);
+          }
+          setTotal(count || 0);
+          setOffset(currentOffset + LIMIT);
+        }
       }
-      setTotal(count || 0);
-      setOffset(currentOffset + LIMIT);
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load properties",
+        variant: "destructive",
+      });
     }
 
     setLoading(false);
@@ -176,6 +248,13 @@ const Search = () => {
     if (e.key === "Enter") {
       handleSearch();
     }
+  };
+
+  const handleMarketChange = (marketId: string) => {
+    setActiveMarket(marketId);
+    // Reset filters when changing markets
+    setFilters({ query: "", minPrice: "", maxPrice: "", beds: "", baths: "", propertyType: "" });
+    setActiveFilters({ query: "", minPrice: "", maxPrice: "", beds: "", baths: "", propertyType: "" });
   };
 
   const handleSave = async (propertyId: string) => {
@@ -245,12 +324,54 @@ const Search = () => {
               <div>
                 <h1 className="font-serif text-2xl md:text-3xl font-bold">Search Properties</h1>
                 <p className="text-muted-foreground text-sm mt-1">
-                  {total} properties available
+                  {total} {currentMarket?.live ? "live listings" : "properties"} available
                 </p>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Market Tabs */}
+        <div className="border-b border-border/50 bg-card/30">
+          <div className="container mx-auto px-4">
+            <div className="flex gap-1 overflow-x-auto py-3 scrollbar-none">
+              {MARKETS.map((market) => (
+                <button
+                  key={market.id}
+                  onClick={() => handleMarketChange(market.id)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                    activeMarket === market.id
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary/50 text-foreground/70 hover:bg-secondary hover:text-foreground"
+                  }`}
+                >
+                  <span>{market.flag}</span>
+                  <span>{market.name}</span>
+                  {market.live && (
+                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider">
+                      <Radio className="w-3 h-3 text-green-400 animate-pulse" />
+                      <span className={activeMarket === market.id ? "text-green-300" : "text-green-500"}>LIVE</span>
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Live Feed Banner for Atlanta */}
+        {activeMarket === "atlanta" && (
+          <div className="bg-green-500/10 border-b border-green-500/20">
+            <div className="container mx-auto px-4 py-3">
+              <div className="flex items-center gap-3 text-green-400">
+                <Radio className="w-4 h-4 animate-pulse" />
+                <span className="text-sm font-medium">
+                  Live FMLS Feed — Real-time Atlanta & Georgia listings
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Search Bar */}
         <div className="container mx-auto px-4 py-6">
@@ -261,7 +382,7 @@ const Search = () => {
                 value={filters.query}
                 onChange={(e) => setFilters({ ...filters, query: e.target.value })}
                 onKeyPress={handleKeyPress}
-                placeholder="Search by city, address, or MLS#"
+                placeholder={activeMarket === "atlanta" ? "Search by address, neighborhood, or MLS#" : "Search by address, city, or neighborhood..."}
                 className="pl-12 h-12 bg-card border-border/50"
               />
             </div>
@@ -287,25 +408,6 @@ const Search = () => {
                   <SheetTitle className="font-serif">Filter Properties</SheetTitle>
                 </SheetHeader>
                 <div className="space-y-6 mt-6">
-                  <div className="space-y-2">
-                    <Label>City</Label>
-                    <Select
-                      value={filters.city}
-                      onValueChange={(value) => setFilters({ ...filters, city: value })}
-                    >
-                      <SelectTrigger className="bg-background">
-                        <SelectValue placeholder="Any city" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border-border">
-                        <SelectItem value="any">Any city</SelectItem>
-                        <SelectItem value="Atlanta">Atlanta</SelectItem>
-                        <SelectItem value="Miami">Miami</SelectItem>
-                        <SelectItem value="Dubai">Dubai</SelectItem>
-                        <SelectItem value="Mexico City">Mexico City</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   <div className="space-y-2">
                     <Label>Bedrooms</Label>
                     <Select
@@ -395,12 +497,6 @@ const Search = () => {
           {/* Active Filter Pills */}
           {hasActiveFilters && (
             <div className="flex flex-wrap gap-2 mt-4">
-              {activeFilters.city && activeFilters.city !== "any" && (
-                <FilterPill 
-                  label={activeFilters.city} 
-                  onRemove={() => clearFilter("city")} 
-                />
-              )}
               {activeFilters.beds && activeFilters.beds !== "any" && (
                 <FilterPill 
                   label={`${activeFilters.beds}+ beds`} 
@@ -447,7 +543,10 @@ const Search = () => {
                 <MapPin className="w-12 h-12 text-primary mx-auto mb-4" />
                 <h2 className="font-serif text-2xl font-bold mb-2">No Properties Found</h2>
                 <p className="text-muted-foreground">
-                  Try adjusting your search filters
+                  {activeMarket === "all" 
+                    ? "Try selecting a specific market or adjusting your filters"
+                    : `No listings available in ${currentMarket?.name}. Try adjusting your filters.`
+                  }
                 </p>
               </Card>
             </div>
@@ -462,6 +561,7 @@ const Search = () => {
                     onSave={() => handleSave(property.id)}
                     formatPrice={formatPrice}
                     index={index}
+                    isLive={property.source === "idx"}
                   />
                 ))}
               </div>
@@ -515,12 +615,14 @@ const PropertySearchCard = ({
   onSave,
   formatPrice,
   index,
+  isLive = false,
 }: {
   property: Property;
   isSaved: boolean;
   onSave: () => void;
   formatPrice: (price: number) => string;
   index: number;
+  isLive?: boolean;
 }) => (
   <Link to={`/property/${property.id}`}>
     <Card 
@@ -537,6 +639,14 @@ const PropertySearchCard = ({
         ) : (
           <div className="w-full h-full bg-secondary flex items-center justify-center">
             <MapPin className="w-12 h-12 text-muted-foreground" />
+          </div>
+        )}
+        
+        {/* Live Badge */}
+        {isLive && (
+          <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 bg-green-500/90 text-white text-xs font-bold rounded-full">
+            <Radio className="w-3 h-3 animate-pulse" />
+            LIVE
           </div>
         )}
         
