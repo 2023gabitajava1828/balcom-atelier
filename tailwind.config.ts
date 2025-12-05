@@ -101,6 +101,9 @@ export default {
         'editorial': '680px',
       },
       keyframes: {
+        shimmer: {
+          "100%": { transform: "translateX(100%)" },
+        },
         "accordion-down": {
           from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
