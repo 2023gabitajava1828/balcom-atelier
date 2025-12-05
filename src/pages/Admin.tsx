@@ -1,7 +1,7 @@
 import { Navigation } from "@/components/layout/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Shield, Users, Calendar, FileText, Settings, Home, RefreshCw, Loader2, ShoppingBag, Trash2 } from "lucide-react";
+import { Shield, Users, Calendar, FileText, Settings, Home, RefreshCw, Loader2, ShoppingBag, Trash2, Sparkles } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ConciergeRequestsManager } from "@/components/admin/ConciergeRequestsManager";
 import { AddPropertyModal } from "@/components/admin/AddPropertyModal";
+import { AddEventModal } from "@/components/admin/AddEventModal";
 import { AdminPagination } from "@/components/admin/AdminPagination";
 import { useToast } from "@/hooks/use-toast";
 
@@ -34,6 +35,7 @@ const Admin = () => {
   const [isSyncingBayut, setIsSyncingBayut] = useState(false);
   const [isSyncingSothebysItems, setIsSyncingSothebysItems] = useState(false);
   const [isSyncingWithDetails, setIsSyncingWithDetails] = useState(false);
+  const [isSyncingVIPEvents, setIsSyncingVIPEvents] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
@@ -333,6 +335,69 @@ const Admin = () => {
       setSelectedItems(new Set());
     } else {
       setSelectedItems(new Set(luxuryItems.map(item => item.id)));
+    }
+  };
+
+  const handleSyncVIPEvents = async () => {
+    setIsSyncingVIPEvents(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('scrape-vip-events', {
+        body: { action: 'seed' }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "VIP Events Synced",
+        description: `Seeded ${data.totalEvents} events. Inserted: ${data.inserted}, Updated: ${data.updated}`,
+      });
+
+      fetchEvents();
+      fetchStats();
+    } catch (error: any) {
+      console.error('Sync error:', error);
+      toast({
+        title: "Sync Failed",
+        description: error.message || "Failed to sync VIP events",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncingVIPEvents(false);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string, eventTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from("events")
+        .delete()
+        .eq("id", eventId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Event Deleted",
+        description: `"${eventTitle}" has been removed.`,
+      });
+
+      fetchEvents();
+      fetchStats();
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete event",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getTierBadgeVariant = (tier: string | null) => {
+    switch (tier) {
+      case 'black': return 'default';
+      case 'platinum': return 'secondary';
+      case 'gold': return 'outline';
+      default: return 'secondary';
     }
   };
 
@@ -702,31 +767,111 @@ const Admin = () => {
                 <TabsContent value="events">
                   <Card className="p-6">
                     <div className="flex items-center justify-between mb-6">
-                      <h2 className="font-serif text-2xl font-bold">Events</h2>
-                      <Button variant="hero">Create Event</Button>
+                      <div>
+                        <h2 className="font-serif text-2xl font-bold">VIP Events</h2>
+                        <p className="text-sm text-foreground/60 mt-1">
+                          Curated 2026 luxury events calendar
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={handleSyncVIPEvents} 
+                          disabled={isSyncingVIPEvents}
+                          variant="hero"
+                          size="sm"
+                        >
+                          {isSyncingVIPEvents ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Syncing...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Seed 2026 Events
+                            </>
+                          )}
+                        </Button>
+                        <AddEventModal onSuccess={() => { fetchEvents(); fetchStats(); }} />
+                      </div>
                     </div>
                     <div className="space-y-4">
                       {events.length === 0 ? (
                         <div className="text-center py-12 text-foreground/60">
                           <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                          <p>No events yet.</p>
+                          <p>No events yet. Click "Seed 2026 Events" to import curated VIP events.</p>
                         </div>
                       ) : (
                         events.map((event) => (
                           <Card key={event.id} className="p-4">
-                            <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-4">
+                              {event.image_url && (
+                                <img 
+                                  src={event.image_url} 
+                                  alt={event.title}
+                                  className="w-24 h-24 object-cover rounded-lg"
+                                />
+                              )}
                               <div className="flex-1">
-                                <h3 className="font-semibold mb-1">{event.title}</h3>
-                                <p className="text-sm text-foreground/70 mb-2">{event.description}</p>
-                                <div className="flex items-center gap-4 text-xs text-foreground/60">
-                                  <span>{format(new Date(event.event_date), "PPP")}</span>
+                                <div className="flex items-start justify-between">
+                                  <div>
+                                    <h3 className="font-semibold mb-1">{event.title}</h3>
+                                    <p className="text-sm text-foreground/70 line-clamp-2 mb-2">{event.description}</p>
+                                  </div>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete Event</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Are you sure you want to delete "{event.title}"? This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => handleDeleteEvent(event.id, event.title)}
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        >
+                                          Delete
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                                <div className="flex items-center gap-3 text-xs text-foreground/60 flex-wrap">
+                                  <span className="font-medium">{format(new Date(event.event_date), "PPP 'at' p")}</span>
+                                  <span>•</span>
+                                  <span>{event.venue}</span>
+                                  <span>•</span>
                                   <span>{event.city}</span>
-                                  {event.capacity && <span>{event.capacity} capacity</span>}
+                                  {event.capacity && (
+                                    <>
+                                      <span>•</span>
+                                      <span>{event.capacity} capacity</span>
+                                    </>
+                                  )}
+                                  {event.dress_code && (
+                                    <>
+                                      <span>•</span>
+                                      <span>{event.dress_code}</span>
+                                    </>
+                                  )}
+                                  {event.min_tier && (
+                                    <Badge variant={getTierBadgeVariant(event.min_tier)} className="ml-2 capitalize">
+                                      {event.min_tier}+
+                                    </Badge>
+                                  )}
                                 </div>
                               </div>
-                              <Button variant="outline" size="sm">
-                                Edit
-                              </Button>
                             </div>
                           </Card>
                         ))
