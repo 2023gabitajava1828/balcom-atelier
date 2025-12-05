@@ -12,7 +12,7 @@ import Concierge from "./pages/Concierge";
 import ConciergeRequest from "./pages/ConciergeRequest";
 import Style from "./pages/Style";
 import Wealth from "./pages/Wealth";
-import Community from "./pages/Community";
+import Events from "./pages/Events";
 import Account from "./pages/Account";
 import Membership from "./pages/Membership";
 import Admin from "./pages/Admin";
@@ -37,7 +37,8 @@ const App = () => (
           <Route path="/concierge/request/:id" element={<ConciergeRequest />} />
           <Route path="/style" element={<Style />} />
           <Route path="/wealth" element={<Wealth />} />
-          <Route path="/community" element={<Community />} />
+          <Route path="/community" element={<Events />} />
+          <Route path="/events" element={<Events />} />
           <Route path="/account" element={<Account />} />
           <Route path="/membership" element={<Membership />} />
           <Route path="/admin" element={<Admin />} />

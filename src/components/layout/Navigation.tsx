@@ -1,17 +1,17 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Menu, X, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useMembership, TIER_LABELS, TIER_COLORS } from "@/hooks/useMembership";
 import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
   { label: "Search", path: "/search" },
-  { label: "Real Estate", path: "/real-estate" },
   { label: "Concierge", path: "/concierge" },
-  { label: "Style", path: "/style" },
-  { label: "Community", path: "/community" },
+  { label: "Events", path: "/community" },
   { label: "Membership", path: "/membership" },
 ];
 
@@ -19,6 +19,7 @@ export const Navigation = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { user, signOut, loading } = useAuth();
+  const { tier } = useMembership();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -42,11 +43,14 @@ export const Navigation = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            <span className="font-serif text-2xl font-bold text-foreground tracking-tight">
+          <Link to="/" className="flex flex-col group">
+            <span className="font-serif text-xl md:text-2xl font-bold text-foreground tracking-tight">
               Balcom <span className="gradient-text-gold">Privé</span>
+            </span>
+            <span className="text-[9px] md:text-[10px] text-muted-foreground tracking-widest hidden sm:block">
+              GLOBAL REAL ESTATE · WHITE-GLOVE CONCIERGE
             </span>
           </Link>
 
@@ -71,28 +75,30 @@ export const Navigation = () => {
           <div className="hidden lg:flex items-center space-x-3">
             {!loading && (
               user ? (
-                <>
+                <div className="flex items-center gap-3">
+                  <Badge className={`text-xs px-2.5 py-0.5 ${TIER_COLORS[tier]}`}>
+                    {TIER_LABELS[tier]}
+                  </Badge>
                   <Link to="/account">
                     <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
                       <User className="w-4 h-4" />
-                      Account
+                      Profile
                     </Button>
                   </Link>
-                  <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
+                  <Button variant="outline" size="sm" onClick={handleLogout}>
                     <LogOut className="w-4 h-4" />
-                    Logout
                   </Button>
-                </>
+                </div>
               ) : (
                 <>
                   <Link to="/auth">
                     <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                      Login
+                      Sign In
                     </Button>
                   </Link>
                   <Link to="/auth">
                     <Button variant="default" size="sm">
-                      Join Now
+                      Get Started
                     </Button>
                   </Link>
                 </>
@@ -132,10 +138,15 @@ export const Navigation = () => {
               {!loading && (
                 user ? (
                   <>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Badge className={`text-xs px-2.5 py-0.5 ${TIER_COLORS[tier]}`}>
+                        {TIER_LABELS[tier]} Member
+                      </Badge>
+                    </div>
                     <Link to="/account" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start gap-2" size="lg">
                         <User className="w-5 h-5" />
-                        Account
+                        Profile
                       </Button>
                     </Link>
                     <Button 
@@ -148,19 +159,19 @@ export const Navigation = () => {
                       }}
                     >
                       <LogOut className="w-5 h-5" />
-                      Logout
+                      Log Out
                     </Button>
                   </>
                 ) : (
                   <>
                     <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full" size="lg">
-                        Login
+                        Sign In
                       </Button>
                     </Link>
                     <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="default" className="w-full" size="lg">
-                        Join Now
+                        Get Started
                       </Button>
                     </Link>
                   </>

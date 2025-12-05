@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useMembership, TIER_LABELS, TIER_COLORS } from "@/hooks/useMembership";
 import heroAtlanta from "@/assets/hero-atlanta.jpg";
 import heroDubai from "@/assets/hero-dubai.jpg";
 import heroMiami from "@/assets/hero-miami.jpg";
@@ -23,6 +25,7 @@ const getGreeting = () => {
 export const Hero = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { user } = useAuth();
+  const { tier } = useMembership();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -35,7 +38,7 @@ export const Hero = () => {
   const firstName = user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'Member';
 
   return (
-    <section className="relative h-screen w-full overflow-hidden">
+    <section className="relative h-[85vh] md:h-screen w-full overflow-hidden">
       {/* Background Slides */}
       {slides.map((slide, index) => (
         <div
@@ -59,44 +62,43 @@ export const Hero = () => {
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 h-full flex flex-col justify-end pb-32 md:pb-24">
-        <div className="max-w-3xl space-y-6">
+        <div className="max-w-3xl space-y-5">
           {user ? (
             // Logged-in user greeting
             <>
-              <p className="text-primary text-sm uppercase tracking-widest font-medium animate-fade-in">
-                Member
-              </p>
+              <Badge className={`${TIER_COLORS[tier]} animate-fade-in`}>
+                {TIER_LABELS[tier]} Member
+              </Badge>
               <h1 
-                className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight animate-fade-in"
+                className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground leading-tight animate-fade-in"
                 style={{ animationDelay: '100ms' }}
               >
                 {getGreeting()}, <span className="gradient-text-gold">{firstName}</span>
               </h1>
               <p 
-                className="text-lg text-muted-foreground max-w-xl animate-fade-in"
+                className="text-base md:text-lg text-muted-foreground max-w-xl animate-fade-in"
                 style={{ animationDelay: '200ms' }}
               >
-                Discover extraordinary properties across 84+ countries
+                Discover extraordinary properties
               </p>
             </>
           ) : (
-            // Guest view
+            // Guest view - Splash screen style
             <>
-              <p className="text-primary text-sm uppercase tracking-widest font-medium animate-fade-in">
-                Global Luxury Real Estate & Concierge
+              <p className="text-eyebrow text-primary animate-fade-in">
+                BALCOM PRIVÉ
               </p>
               <h1 
-                className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight animate-fade-in"
+                className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground leading-tight animate-fade-in"
                 style={{ animationDelay: '100ms' }}
               >
-                Curating Your <br />
-                <span className="gradient-text-gold">Elite Lifestyle</span>
+                Global <span className="gradient-text-gold">Luxury</span>
               </h1>
               <p 
-                className="text-lg text-muted-foreground max-w-xl animate-fade-in"
+                className="text-lg md:text-xl text-muted-foreground max-w-xl animate-fade-in"
                 style={{ animationDelay: '200ms' }}
               >
-                Unifying global luxury real estate, white-glove concierge, and tailored style across 84+ countries
+                Curated estates in Atlanta, Miami, Dubai & beyond
               </p>
             </>
           )}
@@ -111,14 +113,14 @@ export const Hero = () => {
 
           {/* CTA Buttons */}
           <div 
-            className="flex flex-col sm:flex-row gap-4 pt-4 animate-fade-in"
+            className="flex flex-col sm:flex-row gap-3 pt-2 animate-fade-in"
             style={{ animationDelay: '400ms' }}
           >
             {user ? (
               <>
-                <Link to="/real-estate">
-                  <Button variant="default" size="lg" className="group w-full sm:w-auto">
-                    Explore Properties
+                <Link to="/search">
+                  <Button variant="hero" size="lg" className="group w-full sm:w-auto">
+                    Search Properties
                     <ChevronRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
@@ -131,7 +133,7 @@ export const Hero = () => {
             ) : (
               <>
                 <Link to="/auth">
-                  <Button variant="default" size="lg" className="group w-full sm:w-auto">
+                  <Button variant="hero" size="lg" className="group w-full sm:w-auto">
                     Get Started
                     <ChevronRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </Button>
@@ -146,7 +148,7 @@ export const Hero = () => {
           </div>
 
           {/* Slide Indicators */}
-          <div className="flex gap-2 pt-6">
+          <div className="flex gap-2 pt-4">
             {slides.map((_, index) => (
               <button
                 key={index}
@@ -154,8 +156,8 @@ export const Hero = () => {
                 className={cn(
                   "h-1 rounded-full transition-all duration-300",
                   index === currentSlide 
-                    ? "w-12 bg-primary" 
-                    : "w-6 bg-foreground/30 hover:bg-foreground/50"
+                    ? "w-10 bg-primary" 
+                    : "w-5 bg-foreground/30 hover:bg-foreground/50"
                 )}
                 aria-label={`Go to slide ${index + 1}`}
               />
