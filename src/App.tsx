@@ -1,8 +1,10 @@
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { SplashScreen } from "@/components/layout/SplashScreen";
 import Index from "./pages/Index";
 import RealEstate from "./pages/RealEstate";
 import Search from "./pages/Search";
@@ -25,38 +27,52 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/real-estate" element={<RealEstate />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/property/:id" element={<PropertyDetail />} />
-          <Route path="/real-estate/:city" element={<CityMarket />} />
-          <Route path="/concierge" element={<Concierge />} />
-          <Route path="/concierge/request/:id" element={<ConciergeRequest />} />
-          <Route path="/lifestyle" element={<Lifestyle />} />
-          <Route path="/shopping" element={<Shopping />} />
-          <Route path="/auction" element={<Auction />} />
-          <Route path="/wealth" element={<Wealth />} />
-          <Route path="/community" element={<Events />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="/account" element={<Account />} />
-          <Route path="/membership" element={<Membership />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/sports" element={<Sports />} />
-          <Route path="/athlete" element={<AthletePortal />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [showSplash, setShowSplash] = useState(() => {
+    // Only show splash on first visit per session
+    const hasSeenSplash = sessionStorage.getItem("hasSeenSplash");
+    return !hasSeenSplash;
+  });
+
+  const handleSplashComplete = () => {
+    sessionStorage.setItem("hasSeenSplash", "true");
+    setShowSplash(false);
+  };
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/real-estate" element={<RealEstate />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/property/:id" element={<PropertyDetail />} />
+            <Route path="/real-estate/:city" element={<CityMarket />} />
+            <Route path="/concierge" element={<Concierge />} />
+            <Route path="/concierge/request/:id" element={<ConciergeRequest />} />
+            <Route path="/lifestyle" element={<Lifestyle />} />
+            <Route path="/shopping" element={<Shopping />} />
+            <Route path="/auction" element={<Auction />} />
+            <Route path="/wealth" element={<Wealth />} />
+            <Route path="/community" element={<Events />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/membership" element={<Membership />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/sports" element={<Sports />} />
+            <Route path="/athlete" element={<AthletePortal />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
