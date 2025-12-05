@@ -1,40 +1,9 @@
 import { Link } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
-import { ExternalLink } from "lucide-react";
-
-// Partner logos
-// import atlantaLogo from "@/assets/partners/atlanta-fine-homes-sir.png";
-// import miamiLogo from "@/assets/partners/one-sothebys-miami.png";
-import dubaiLogo from "@/assets/partners/dubai-sothebys.png";
 
 interface FooterProps {
   className?: string;
 }
-
-const partners = [
-  {
-    name: "Atlanta Fine Homes",
-    subtitle: "Sotheby's International Realty",
-    market: "Atlanta",
-    website: "https://atlantafinehomes.com",
-    logo: null as string | null,
-  },
-  {
-    name: "ONE Sotheby's",
-    subtitle: "International Realty",
-    market: "Miami",
-    website: "https://onesothebysrealty.com",
-    logo: null as string | null,
-  },
-  {
-    name: "Dubai Sotheby's",
-    subtitle: "International Realty",
-    market: "Dubai",
-    website: "https://sothebysrealty.ae",
-    logo: dubaiLogo,
-    invertLogo: true, // Make logo white on dark background
-  },
-];
 
 export const Footer = ({ className }: FooterProps) => {
   const currentYear = new Date().getFullYear();
@@ -102,51 +71,6 @@ export const Footer = ({ className }: FooterProps) => {
                 </li>
               ))}
             </ul>
-          </div>
-        </div>
-
-        <Separator className="bg-border/50" />
-
-        {/* Real Estate Advisory Partners */}
-        <div className="py-10">
-          <h4 className="text-xs uppercase tracking-[0.2em] text-muted-foreground text-center mb-8">
-            Real Estate Advisory Partners
-          </h4>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {partners.map((partner) => (
-              <a
-                key={partner.market}
-                href={partner.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex flex-col items-center text-center p-6 rounded-lg hover:bg-background/50 transition-all duration-300"
-              >
-                {partner.logo ? (
-                  <img 
-                    src={partner.logo} 
-                    alt={`${partner.name} ${partner.subtitle}`}
-                    className={`h-12 w-auto object-contain mb-4 opacity-80 group-hover:opacity-100 transition-opacity ${'invertLogo' in partner && partner.invertLogo ? 'brightness-0 invert' : ''}`}
-                  />
-                ) : (
-                  <div className="mb-3">
-                    <p className="font-serif text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                      {partner.name}
-                    </p>
-                    <p className="font-serif text-sm text-muted-foreground italic">
-                      {partner.subtitle}
-                    </p>
-                  </div>
-                )}
-                
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs uppercase tracking-wider text-muted-foreground/70">
-                    {partner.market}
-                  </span>
-                  <ExternalLink className="w-3 h-3 text-muted-foreground/50 group-hover:text-primary transition-colors" />
-                </div>
-              </a>
-            ))}
           </div>
         </div>
 
