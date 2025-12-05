@@ -129,7 +129,7 @@ const Sports = () => {
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navigation />
       
-      <main className="container mx-auto px-4 py-6 max-w-7xl">
+      <main className="container mx-auto px-4 pt-24 pb-6 max-w-7xl">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
